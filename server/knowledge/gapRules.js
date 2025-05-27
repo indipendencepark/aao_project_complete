@@ -1,33 +1,30 @@
-
-
 const getRiskLevelFromMapping = (dimensioneCliente, riskMappingString = "") => {
   const mapping = riskMappingString.toUpperCase().split("/");
   if (mapping.length !== 4) return "basso";
 
-    const [riskMicro, riskP, riskM, riskG] = mapping.map((r => {
+  const [riskMicro, riskP, riskM, riskG] = mapping.map((r) => {
     if (r === "A") return "alto";
     if (r === "M") return "medio";
     if (r === "B") return "basso";
     return "basso";
+  });
 
-    }));
   switch (dimensioneCliente) {
-   case "Micro":
-    return riskMicro;
+    case "Micro":
+      return riskMicro;
 
-   case "Piccola":
-    return riskP;
+    case "Piccola":
+      return riskP;
 
-   case "Media":
-    return riskM;
+    case "Media":
+      return riskM;
 
-   case "Grande":
-    return riskG;
+    case "Grande":
+      return riskG;
 
-   default:
-    return "basso";
-
-    }
+    default:
+      return "basso";
+  }
 };
 
 const gapRules = [ 
@@ -69,7 +66,7 @@ const gapRules = [
 
   triggerAnswers: [ "No", "Parziale" ],
   getGapDetails: (answer, cliente) => ({
-    descrizione: "Mancata/incompleta identificazione formale ruoli chiave.",
+    descrizione: "Mancata/incompletezza identificazione formale ruoli chiave.",
     livello_rischio: getRiskLevelFromMapping(cliente?.dimensioneStimata, "B/B/M/M"),
     implicazioni: "Ambiguità responsabilità, difficoltà individuazione referenti.",
     riferimenti_normativi: [ "FNC CL B.4", "BP Org. Aziendale" ]
@@ -134,7 +131,7 @@ const gapRules = [
 
   triggerAnswers: [ "No", "Parziale" ],
   getGapDetails: (answer, cliente) => ({
-    descrizione: "Mancata/incompleta mappatura processi chiave.",
+    descrizione: "Mancata/incompletezza mappatura processi chiave.",
     livello_rischio: getRiskLevelFromMapping(cliente?.dimensioneStimata, "B/B/M/M"),
     implicazioni: "Scarsa visibilità operativa, difficoltà ottimizzazione.",
     riferimenti_normativi: [ "FNC CL C.1", "BP Process Management" ]

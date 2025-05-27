@@ -1,4 +1,3 @@
-
 const dotenv = require("dotenv");
 
 const {OpenAI: OpenAI} = require("openai");
@@ -92,9 +91,18 @@ const openai = openaiApiKey ? new OpenAI({
     console.log(`--- JSON Arricchito (FULL KB) VALIDO ricevuto per Gap ${gapBase.item_id}.`);
     console.log(`    Sezione KB citata dall'AI: ${enrichedJson.sezione_kb_piu_rilevante_citata || "Nessuna"}`);
 
-        return {
+    const validRiskLevels = ['alto', 'medio', 'basso'];
+    const suggestedRiskLevel = enrichedJson.livello_rischio_suggerito_ai;
+
+    // Verifica se il livello di rischio suggerito è valido
+    if (!validRiskLevels.includes(suggestedRiskLevel)) {
+      console.error(`!!! ERRORE: Livello di rischio suggerito non valido: ${suggestedRiskLevel}`);
+      // Puoi decidere di impostare un valore di fallback qui, se necessario
+    }
+
+    return {
       descrizione: enrichedJson.descrizione_arricchita || gapBase.descrizione,
-      livello_rischio: enrichedJson.livello_rischio_suggerito_ai || gapBase.livello_rischio,
+      livello_rischio: suggestedRiskLevel || gapBase.livello_rischio,
       implicazioni: enrichedJson.implicazioni_dettagliate_ai || (gapBase.implicazioni ? Array.isArray(gapBase.implicazioni) ? gapBase.implicazioni : [ gapBase.implicazioni ] : []),
       suggerimenti_ai: enrichedJson.suggerimenti_specifici_ai || [],
       riferimentiNormativiSpecificiAI: enrichedJson.riferimenti_normativi_specifici_ai || [],

@@ -358,82 +358,114 @@ const GapSchema = new Schema({
 });
 
 const ReportDiagnosticoSchema = new Schema({
-  checklist_id: {
-    type: Schema.Types.ObjectId,
-    ref: "Checklist",
-    required: true
-  },
-  data_generazione: {
-    type: Date,
-    default: Date.now
-  },
-  titolo: {
-    type: String,
-    required: true
-  },
-  sintesi_esecutiva: {
-    type: String,
-    required: true
-  },
+    checklist_id: { type: Schema.Types.ObjectId, ref: "Checklist", required: true, index: true, unique: true },
+    data_generazione: { type: Date, default: Date.now },
+    titolo: { type: String, required: true },
 
-  aree_forza: [ String ],
-  aree_debolezza: [ String ],
-  gaps: [ {
-    type: Schema.Types.ObjectId,
-    ref: "Gap"
-  } ],
-  raccomandazioni: [ String ],
-  generato_da_id: {
-    type: Schema.Types.ObjectId,
-    ref: "User"
-  },
-  stato: {
-    type: String,
-    enum: [ "bozza", "finale" ],
-    default: "bozza"
-  },
-
-  analisiConformita: {
-
-    cndcec: [ {
-      puntoNorma: String,
-      valutazione: String,
-      note: String
-    } ],
-
-    eba: [ {
-      puntoNorma: String,
-      valutazione: String,
-      note: String
-    } ]
-  },
-  valutazioneQualitativaAAO: {
-
-    approccioForwardLooking: {
-      valutazione: String,
-      motivazione: String
+    clienteInfo: {
+        nome: String,
+        formaGiuridica: String,
+        codiceFiscale: String,
+        partitaIva: String,
+        dimensioneStimata: String,
+        settore: String,
+        complessita: String,
+        obiettiviStrategici: String,
+        criticitaPercepite: String,
     },
-    kpiQualitativi: {
-      valutazione: String,
-      motivazione: String
+
+    checklistInfo: {
+        id: { type: Schema.Types.ObjectId, ref: "Checklist" },
+        nome: String,
+        descrizione: String,
+        stato: String,
+        data_compilazione: Date,
+        percentuale_completamento: Number
     },
-    pianificazioneStrategica: {
-      valutazione: String,
-      motivazione: String
-    }
-  },
-  suggerimentiPianoAzioneIniziale: [ {
-    gapId: {
-      type: Schema.Types.ObjectId,
-      ref: "Gap"
+
+    sintesi_esecutiva: { type: String, required: true },
+
+    executiveSummaryBase: {
+        giudizioGenerale: String,
+        areeForza: [String],
+        areeDebolezza: [String],
+        gapPrioritariCount: Number
     },
-    titoloGap: String,
-    rischioGap: String,
-    interventoSuggerito: String
-  } ]
-}, {
-  timestamps: true
-});
+
+    analisiArea: Schema.Types.Mixed,
+
+    statisticheGap: {
+        totalGaps: Number,
+        countByRisk: { alto: Number, medio: Number, basso: Number },
+        countByArea: { Org: Number, Admin: Number, Acct: Number, Crisi: Number, Altro: Number },
+        riskCountByArea: Schema.Types.Mixed
+    },
+
+    elencoGapCompleto: [{
+        _id: Schema.Types.ObjectId,
+        item_id: String,
+        domandaText: String,
+        descrizione: String,
+        livello_rischio: String,
+        implicazioni: [String],
+        suggerimenti_ai: [String],
+        riferimentiNormativiSpecificiAI: [String],
+        impattoStimatoAI: { tipo: String, livello: String, descrizione: String },
+        prioritaRisoluzioneAI: String,
+    }],
+
+    analisiConformita: {
+        cndcec: [{
+            puntoCNDCEC: String,
+            descrizionePunto: String,
+            rispostaUtente: String,
+            valutazioneConformita: String,
+            gapCorrelatoId: { type: Schema.Types.ObjectId, ref: 'Gap', sparse: true },
+            noteGap: String,
+            notaUtenteChecklist: String,
+            fonteNormativaPunto: String
+        }],
+        sistemiAllertaCCII: [{
+            aspettoValutato: String,
+            risposteRilevanti: Schema.Types.Mixed,
+            valutazioneConformita: String,
+            noteOsservazioni: String,
+            implicazioniNonConformitaTestuali: String
+        }],
+        eba: [{
+            principioEBA: String,
+            valutazioneAI: String,
+            domandeChecklistCorrelate: [String]
+        }],
+        ssmArt2086: [{
+            aspettoSSM: String,
+            commentoAI: String
+        }],
+        predisposizioneVistiCNDCEC: [{
+            requisitoVisto: String,
+            parerePreliminareAI: String
+        }]
+    },
+
+    valutazioneQualitativaAAO: {
+        approccioForwardLooking: { valutazioneTestualeAI: String, domandeRif: [String] },
+        utilizzoStrumentiAvanzati: { valutazioneTestualeAI: String, domandeRif: [String] },
+        focusKpiQualitativi: { valutazioneTestualeAI: String, domandeRif: [String] },
+        culturaControlloRischio: { valutazioneTestualeAI: String, domandeRif: [String] }
+    },
+
+    suggerimentiPianoAzioneIniziale: [{
+        gapId: { type: Schema.Types.ObjectId, ref: 'Gap' },
+        titoloGap: String,
+        rischioGap: String,
+        interventoSuggerito: String
+    }],
+    
+    generato_da_id: { type: Schema.Types.ObjectId, ref: "User" },
+    versioneReport: { type: Number, default: 1 },
+    raccomandazioniGenerali: [String]
+
+}, { timestamps: { createdAt: 'data_creazione_documento_report', updatedAt: 'data_ultima_modifica_report' } });
 
 const Checklist = mongoose.model("Checklist", ChecklistSchema);
 
