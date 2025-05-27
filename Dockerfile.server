@@ -1,0 +1,69 @@
+# Dockerfile.server (AGGIORNATO - Base Debian)
+
+# Usa un'immagine Node.js LTS basata su Debian (più compatibile con Puppeteer)
+FROM node:18
+# In alternativa, prova: FROM node:18-bookworm-slim
+
+# Imposta la directory di lavoro all'interno del container
+WORKDIR /usr/src/app
+
+# (Opzionale ma Raccomandato) Installa dipendenze comuni per Puppeteer su Debian
+# Questo passo potrebbe non essere strettamente necessario se Puppeteer le scarica
+# correttamente, ma aggiungerle previene molti problemi comuni.
+# Nota: Questo aumenta leggermente la dimensione dell'immagine.
+RUN apt-get update && apt-get install -yq --no-install-recommends \
+    ca-certificates \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libc6 \
+    libcairo2 \
+    libcups2 \
+    libdbus-1-3 \
+    libexpat1 \
+    libfontconfig1 \
+    libgbm1 \
+    libgcc1 \
+    libglib2.0-0 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libstdc++6 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libxrender1 \
+    libxss1 \
+    libxtst6 \
+    lsb-release \
+    wget \
+    xdg-utils \
+    # Pulisci cache apt per ridurre dimensione immagine
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copia PRIMA package.json e package-lock.json per sfruttare la cache di Docker
+COPY package*.json ./
+
+# Installa le dipendenze del server definite nel package.json della root
+# Inclusa Puppeteer, che scaricherà Chromium
+RUN npm install
+
+# Copia il resto del codice sorgente
+COPY . .
+
+# Esponi la porta su cui il server Express ascolterà
+EXPOSE 5000
+
+# Comando per avviare il server in modalità sviluppo (usa nodemon)
+CMD [ "npm", "run", "server" ]
