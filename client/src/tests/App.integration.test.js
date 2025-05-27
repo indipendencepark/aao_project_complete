@@ -4,7 +4,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { act } from 'react-dom/test-utils';
 import App from '../App';
 
-// Mock dei componenti che utilizzano Chart.js
 jest.mock('chart.js');
 jest.mock('react-chartjs-2', () => ({
   Pie: () => <div data-testid="mock-pie-chart">Grafico a torta</div>,
@@ -12,7 +11,6 @@ jest.mock('react-chartjs-2', () => ({
   Line: () => <div data-testid="mock-line-chart">Grafico a linee</div>
 }));
 
-// Mock dei componenti Material-UI DatePicker
 jest.mock('@mui/x-date-pickers/AdapterDateFns', () => ({
   AdapterDateFns: function MockAdapter() {
     return {};
@@ -29,7 +27,6 @@ jest.mock('@mui/x-date-pickers', () => ({
   )
 }));
 
-// Mock di react-router-dom per testare la navigazione
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -38,10 +35,9 @@ jest.mock('react-router-dom', () => ({
 
 describe('App Integration Tests', () => {
   beforeEach(() => {
-    // Reset mocks
+
     mockNavigate.mockReset();
-    
-    // Render App
+
     render(
       <BrowserRouter>
         <App />
@@ -55,30 +51,25 @@ describe('App Integration Tests', () => {
   });
 
   test('navigation between modules works correctly', async () => {
-    // Trova e clicca sul link al modulo Diagnosi
+
     const diagnosiLink = screen.getByText('Vai al modulo', { selector: 'button' });
     fireEvent.click(diagnosiLink);
-    
-    // Verifica che il link abbia l'attributo href corretto
+
     expect(diagnosiLink.closest('a')).toHaveAttribute('href', '/diagnosi');
-    
-    // Trova e clicca sul link al modulo Progettazione
+
     const progettazioneLink = screen.getAllByText('Vai al modulo', { selector: 'button' })[1];
     fireEvent.click(progettazioneLink);
-    
-    // Verifica che il link abbia l'attributo href corretto
+
     expect(progettazioneLink.closest('a')).toHaveAttribute('href', '/progettazione');
-    
-    // Trova e clicca sul link al modulo Monitoraggio
+
     const monitoraggioLink = screen.getAllByText('Vai al modulo', { selector: 'button' })[2];
     fireEvent.click(monitoraggioLink);
-    
-    // Verifica che il link abbia l'attributo href corretto
+
     expect(monitoraggioLink.closest('a')).toHaveAttribute('href', '/monitoraggio');
   });
 
   test('quick actions buttons have correct hrefs', () => {
-    // Verifica che i pulsanti di azione rapida abbiano gli attributi href corretti
+
     const nuovaChecklistButton = screen.getAllByText('Nuova Checklist')[1].closest('a');
     const nuovoInterventoButton = screen.getByText('Nuovo Intervento').closest('a');
     const gestioneKpiButton = screen.getByText('Gestione KPI').closest('a');
@@ -91,7 +82,7 @@ describe('App Integration Tests', () => {
   });
 
   test('dashboard displays all required sections', () => {
-    // Verifica che la dashboard mostri tutte le sezioni richieste
+
     expect(screen.getByText('Diagnosi e Assessment')).toBeInTheDocument();
     expect(screen.getByText('Progettazione e Supporto')).toBeInTheDocument();
     expect(screen.getByText('Monitoraggio Continuativo')).toBeInTheDocument();
@@ -100,7 +91,7 @@ describe('App Integration Tests', () => {
   });
 
   test('dashboard displays charts correctly', () => {
-    // Verifica che i grafici siano visualizzati correttamente
+
     expect(screen.getAllByTestId('mock-pie-chart').length).toBeGreaterThan(0);
     expect(screen.getAllByTestId('mock-bar-chart').length).toBeGreaterThan(0);
   });

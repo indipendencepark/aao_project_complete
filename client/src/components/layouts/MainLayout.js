@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Container, IconButton } from '@mui/material';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
-// Icons
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import BuildIcon from '@mui/icons-material/Build';
@@ -111,14 +110,12 @@ const MainLayout = () => {
     sx={{
       flexGrow: 1,
       p: 3,
-      // width: { sm: `calc(100% - ${drawerWidth}px)` },
-      // ml: { sm: `${drawerWidth}px` },
-      // backgroundColor: 'lightcoral', // <-- RIMOSSA o COMMENTATA
+
       minHeight: 'calc(100vh - 64px)' // Puoi lasciare questa se vuoi che l'area main occupi almeno tutta l'altezza
     }}
   >
     <Toolbar />
-    {/* Container senza sfondo giallo */}
+    {}
     <Container maxWidth="xl">
       <Outlet />
     </Container>

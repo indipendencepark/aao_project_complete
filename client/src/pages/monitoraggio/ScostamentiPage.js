@@ -10,28 +10,17 @@ import {
     Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend
 } from 'chart.js';
 
-// Icons - Rimuovi quelli non usati o decommentali se servono
-// import VisibilityIcon from '@mui/icons-material/Visibility';
-// import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-// import WarningIcon from '@mui/icons-material/Warning';
-// import ErrorIcon from '@mui/icons-material/Error';
-// import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
-// import BusinessIcon from '@mui/icons-material/Business';
-// import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-// import PeopleIcon from '@mui/icons-material/People';
-// import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
-// Registrazione dei componenti Chart.js (solo quelli usati)
 ChartJS.register(
     CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend
 );
 
-// --- Dati di Esempio (Mantenuti per ora) ---
 const kpiData = [
   { id: '1', nome: 'Fatturato Mensile', area: 'Commerciale', unita_misura: '€', frequenza_rilevazione: 'mensile', valore_target: 100000, soglia_attenzione: 90000, soglia_allarme: 80000 },
   { id: '2', nome: 'Margine Operativo Lordo', area: 'Commerciale', unita_misura: '€', frequenza_rilevazione: 'trimestrale', valore_target: 30000, soglia_attenzione: 25000, soglia_allarme: 20000 },
@@ -53,10 +42,9 @@ const scostamentiData = [
   { id: '3', kpi_id: '5', periodo_corrente: '2025-04', periodo_precedente: '2025-03', valore_corrente: 12500, valore_precedente: 11500, scostamento_assoluto: 1000, scostamento_percentuale: 8.7, causa_probabile: 'Aumento prezzi materie prime', impatto: 'Alto', azioni_suggerite: 'Rinegoziare contratti', data_analisi: '2025-05-05' },
   { id: '4', kpi_id: '4', periodo_corrente: '2025-Q2', periodo_precedente: '2025-Q1', valore_corrente: 9.5, valore_precedente: 7.5, scostamento_assoluto: 2, scostamento_percentuale: 26.67, causa_probabile: 'Insoddisfazione personale', impatto: 'Alto', azioni_suggerite: 'Condurre survey', data_analisi: '2025-07-05' }
 ];
-// --- Fine Dati di Esempio ---
 
 const ScostamentiPage = () => {
-  // CHIAMATE useState SPOSTATE QUI ALL'INIZIO
+
   const [scostamenti, setScostamenti] = useState(scostamentiData);
   const [filteredScostamenti, setFilteredScostamenti] = useState(scostamentiData);
   const [filters, setFilters] = useState({ area: '', impatto: '', periodo: '' });
@@ -65,15 +53,9 @@ const ScostamentiPage = () => {
   const [tabValue, setTabValue] = useState(0);
   const [selectedKpi, setSelectedKpi] = useState(null);
   const [showAnalisiForm, setShowAnalisiForm] = useState(false);
-  // Stato per il form di analisi, definito qui
+
   const [formDataAnalisi, setFormDataAnalisi] = useState({ causa_probabile: '', impatto: 'Medio', azioni_suggerite: '' });
 
-  // Rimosso useState non usato per kpis e valoriKpi (li usiamo dai dati di esempio per ora)
-  // const [kpis, setKpis] = useState(kpiData);
-  // const [valoriKpi, setValoriKpi] = useState(valoriKpiData);
-
-
-  // Funzione per applicare i filtri
   useEffect(() => {
     let result = scostamenti;
     if (filters.area) {
@@ -89,7 +71,6 @@ const ScostamentiPage = () => {
     setFilteredScostamenti(result);
   }, [scostamenti, filters]); // Rimosso kpis dalle dipendenze perché usiamo kpiData
 
-  // Definizione delle funzioni mancanti
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
@@ -99,11 +80,10 @@ const ScostamentiPage = () => {
     setOpenDialog(false);
     setSelectedScostamento(null); // Resetta anche lo scostamento selezionato
   };
-  // --- Fine definizione funzioni mancanti ---
 
   const handleTabChange = (event, newValue) => { setTabValue(newValue); };
   const handleOpenDialog = (scostamento) => { setSelectedScostamento(scostamento); setOpenDialog(true); };
-  const handleDeleteScostamento = (id) => { setScostamenti(scostamenti.filter(s => s.id !== id)); handleCloseDialog(); /* API Call */ };
+  const handleDeleteScostamento = (id) => { setScostamenti(scostamenti.filter(s => s.id !== id)); handleCloseDialog();  };
   const handleKpiSelect = (kpi) => { setSelectedKpi(kpi); setShowAnalisiForm(true); setFormDataAnalisi({ causa_probabile: '', impatto: 'Medio', azioni_suggerite: '' }); }; // Resetta form
   const handleBackFromAnalisi = () => { setShowAnalisiForm(false); setSelectedKpi(null); };
 
@@ -122,7 +102,6 @@ const ScostamentiPage = () => {
     return (isPositiveKpi ? scostamento.scostamento_assoluto >= 0 : scostamento.scostamento_assoluto <= 0) ? 'positivo' : 'negativo';
   };
 
-  // Componente per il form di analisi degli scostamenti
   const AnalisiScostamentiForm = () => {
     if (!selectedKpi) return null;
 
@@ -172,7 +151,7 @@ const ScostamentiPage = () => {
       };
       setScostamenti([...scostamenti, newScostamento]);
       handleBackFromAnalisi(); // Torna alla lista KPI dopo salvataggio
-      // TODO: Chiamata API POST /api/analysis/scostamenti
+
     };
 
     return (
@@ -213,10 +192,7 @@ const ScostamentiPage = () => {
       </Box>
     );
   };
-  // --- Fine Componente Form ---
 
-
-  // --- Rendering Principale ---
   return (
     <Box>
       <Typography variant="h5" gutterBottom>Analisi degli Scostamenti</Typography>
@@ -233,13 +209,13 @@ const ScostamentiPage = () => {
                 {tabValue === 0 && (
                      <Paper sx={{ p: 3, mb: 4 }}>
                        <Typography variant="body1" paragraph>Elenco degli scostamenti rilevanti analizzati.</Typography>
-                        {/* Filtri */}
+                        {}
                         <Grid container spacing={3} sx={{ mb: 3 }}>
                              <Grid item xs={12} md={4}><FormControl fullWidth><InputLabel>Area</InputLabel><Select name="area" label="Area" value={filters.area} onChange={handleFilterChange}><MenuItem value="">Tutte</MenuItem><MenuItem value="Commerciale">Commerciale</MenuItem><MenuItem value="Logistica">Logistica</MenuItem><MenuItem value="HR">HR</MenuItem><MenuItem value="Acquisti">Acquisti</MenuItem></Select></FormControl></Grid>
                              <Grid item xs={12} md={4}><FormControl fullWidth><InputLabel>Impatto</InputLabel><Select name="impatto" label="Impatto" value={filters.impatto} onChange={handleFilterChange}><MenuItem value="">Tutti</MenuItem><MenuItem value="Alto">Alto</MenuItem><MenuItem value="Medio">Medio</MenuItem><MenuItem value="Basso">Basso</MenuItem></Select></FormControl></Grid>
                              <Grid item xs={12} md={4}><TextField name="periodo" label="Periodo (es. 2025-04)" fullWidth value={filters.periodo} onChange={handleFilterChange} /></Grid>
                         </Grid>
-                        {/* Tabella Scostamenti */}
+                        {}
                        <TableContainer>
                            <Table>
                                <TableHead><TableRow><TableCell>KPI</TableCell><TableCell>Periodo</TableCell><TableCell>Valore</TableCell><TableCell>Scost. %</TableCell><TableCell>Impatto</TableCell><TableCell>Causa Probabile</TableCell><TableCell>Azioni</TableCell></TableRow></TableHead>
@@ -289,7 +265,7 @@ const ScostamentiPage = () => {
                    </Paper>
                )}
 
-               {/* Dialog Conferma Eliminazione */}
+               {}
                 <Dialog open={openDialog} onClose={handleCloseDialog}>
                    <DialogTitle>Conferma Eliminazione</DialogTitle>
                    <DialogContent><Typography>Eliminare l'analisi per "{getKpiById(selectedScostamento?.kpi_id)?.nome}" del periodo {selectedScostamento?.periodo_corrente}?</Typography></DialogContent>

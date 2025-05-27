@@ -3,7 +3,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import DashboardUnificata from '../pages/DashboardUnificata';
 
-// Mock dei componenti che utilizzano Chart.js
 jest.mock('chart.js');
 jest.mock('react-chartjs-2', () => ({
   Pie: () => <div data-testid="mock-pie-chart">Grafico a torta</div>,
@@ -54,7 +53,7 @@ describe('DashboardUnificata Component', () => {
   test('navigation buttons work correctly', () => {
     const diagnosiButton = screen.getByText('Vai al modulo', { selector: 'button' });
     expect(diagnosiButton).toBeInTheDocument();
-    // Verifica che il pulsante abbia l'attributo href corretto
+
     expect(diagnosiButton.closest('a')).toHaveAttribute('href', '/diagnosi');
   });
 });

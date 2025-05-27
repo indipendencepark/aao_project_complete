@@ -23,7 +23,6 @@ import {
 } from '@mui/material';
 import { Link } from 'react-router-dom'; // Importa Link da react-router-dom
 
-// Chart.js
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -38,10 +37,7 @@ import {
   Filler // Importa Filler se usi 'fill' nei grafici
 } from 'chart.js';
 import { Line, Bar, Pie } from 'react-chartjs-2';
-// Importa il plugin per le annotazioni se lo usi (richiede installazione: npm install chartjs-plugin-annotation)
-// import annotationPlugin from 'chartjs-plugin-annotation'; 
 
-// Icons
 import WarningIcon from '@mui/icons-material/Warning';
 import ErrorIcon from '@mui/icons-material/Error';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -54,7 +50,6 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import NotificationsIcon from '@mui/icons-material/Notifications'; // Per la sezione Alert
 
-// Registrazione dei componenti Chart.js e plugin
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -66,10 +61,9 @@ ChartJS.register(
   Legend,
   ArcElement,
   Filler // Registra Filler
-  // annotationPlugin // Registra il plugin se lo usi
+
 );
 
-// Dati di esempio per i KPI
 const kpiData = [
   { id: '1', nome: 'Fatturato Mensile', area: 'Commerciale', unita_misura: '€', valore_target: 100000, soglia_attenzione: 90000, soglia_allarme: 80000 },
   { id: '2', nome: 'Margine Operativo Lordo', area: 'Commerciale', unita_misura: '€', valore_target: 30000, soglia_attenzione: 25000, soglia_allarme: 20000 },
@@ -78,7 +72,6 @@ const kpiData = [
   { id: '5', nome: 'Costo Medio Acquisti', area: 'Acquisti', unita_misura: '€', valore_target: 10000, soglia_attenzione: 12000, soglia_allarme: 15000 },
 ];
 
-// Dati di esempio per i valori dei KPI
 const valoriKpiData = [
   { id: '1', kpi_id: '1', valore: 95000, periodo: '2025-03', data_rilevazione: '2025-04-01' },
   { id: '2', kpi_id: '1', valore: 105000, periodo: '2025-02', data_rilevazione: '2025-03-01' },
@@ -93,7 +86,6 @@ const valoriKpiData = [
   { id: '11', kpi_id: '5', valore: 12500, periodo: '2025-04', data_rilevazione: '2025-05-01' },
 ];
 
-// Dati di esempio per gli alert
 const alertsData = [
   { id: '1', kpi_id: '1', tipo: 'attenzione', messaggio: 'Fatturato Mensile sotto la soglia di attenzione', data_generazione: '2025-05-01', letto: false, area: 'Commerciale' },
   { id: '2', kpi_id: '5', tipo: 'attenzione', messaggio: 'Costo Medio Acquisti sopra la soglia di attenzione', data_generazione: '2025-05-01', letto: false, area: 'Acquisti'},
@@ -101,7 +93,6 @@ const alertsData = [
   { id: '4', kpi_id: '1', tipo: 'allarme', messaggio: 'Fatturato Mensile sotto la soglia di allarme', data_generazione: '2025-05-15', letto: false, area: 'Commerciale'},
 ];
 
-// Componente per il cruscotto di monitoraggio
 const DashboardPage = () => {
   const [kpis, setKpis] = useState(kpiData);
   const [valoriKpi, setValoriKpi] = useState(valoriKpiData);
@@ -110,20 +101,12 @@ const DashboardPage = () => {
   const [selectedKpi, setSelectedKpi] = useState(null);
   const [kpiDetails, setKpiDetails] = useState(null); // Per dati grafico KPI selezionato
 
-  // Effetti per caricare dati reali (da implementare)
-  // useEffect(() => { ... fetchKpis ... }, []);
-  // useEffect(() => { ... fetchValori ... }, []);
-  // useEffect(() => { ... fetchAlerts ... }, []);
-
-  // Filtra i KPI per area
   const filteredKpis = selectedArea 
     ? kpis.filter(kpi => kpi.area === selectedArea)
     : kpis;
 
-  // Calcola il numero di KPI per stato
   const kpiStatusCount = { ok: 0, attenzione: 0, allarme: 0, non_rilevato: 0 };
 
-  // Funzione per ottenere lo stato di un KPI
   function getKpiStatus(kpi) {
     const valoriKpiOrdinati = valoriKpi
       .filter(valore => valore.kpi_id === kpi.id)
@@ -144,17 +127,14 @@ const DashboardPage = () => {
     }
   }
 
-  // Popola kpiStatusCount
   kpis.forEach(kpi => {
     const status = getKpiStatus(kpi);
     kpiStatusCount[status]++;
   });
 
-  // Calcola il numero di alert non letti
   const unreadAlertsCount = alerts.filter(alert => !alert.letto).length;
 
-  // Funzioni helper (getStatusColor, getStatusLabel, getAreaIcon)
-  function getStatusColor(status) { /* ... implementazione come prima ... */ 
+  function getStatusColor(status) {  
       switch (status) {
           case 'ok': return 'success';
           case 'attenzione': return 'warning';
@@ -162,7 +142,7 @@ const DashboardPage = () => {
           default: return 'default';
       }
   }
-  function getStatusLabel(status) { /* ... implementazione come prima ... */ 
+  function getStatusLabel(status) {  
       switch (status) {
           case 'ok': return 'OK';
           case 'attenzione': return 'Attenzione';
@@ -171,7 +151,7 @@ const DashboardPage = () => {
           default: return status;
       }
   }
-  function getAreaIcon(area) { /* ... implementazione come prima ... */ 
+  function getAreaIcon(area) {  
       switch (area) {
           case 'Commerciale': return <BusinessIcon fontSize="small"/>;
           case 'Logistica': return <LocalShippingIcon fontSize="small"/>;
@@ -180,26 +160,24 @@ const DashboardPage = () => {
           default: return <BusinessIcon fontSize="small"/>;
       }
   }
-  function getValoriByKpiId(kpiId) { /* ... implementazione come prima ... */ 
+  function getValoriByKpiId(kpiId) {  
       return valoriKpi
           .filter(valore => valore.kpi_id === kpiId)
           .sort((a, b) => a.periodo.localeCompare(b.periodo));
   }
-  function getLastValueByKpiId(kpiId) { /* ... implementazione come prima ... */ 
+  function getLastValueByKpiId(kpiId) {  
       const valoriOrdinati = valoriKpi
           .filter(valore => valore.kpi_id === kpiId)
           .sort((a, b) => new Date(b.data_rilevazione) - new Date(a.data_rilevazione));
       return valoriOrdinati.length > 0 ? valoriOrdinati[0] : null;
   }
 
-  // Gestione cambio area
   const handleAreaChange = (event) => {
     setSelectedArea(event.target.value);
     setSelectedKpi(null); // Deseleziona KPI quando cambia l'area
     setKpiDetails(null);
   };
 
-  // Gestione click su KPI nella lista
   const handleKpiClick = (kpi) => {
     setSelectedKpi(kpi);
     
@@ -238,7 +216,7 @@ const DashboardPage = () => {
           pointRadius: 5,
           pointHoverRadius: 7
         },
-        // Linee orizzontali per target e soglie
+
         {
           label: 'Target',
           data: Array(labels.length).fill(kpi.valore_target),
@@ -282,7 +260,7 @@ const DashboardPage = () => {
             }
           }
         },
-        // annotation: { ... } // Configura qui se usi il plugin annotation
+
       },
       scales: { y: { beginAtZero: false, title: { display: true, text: kpi.unita_misura || '' } } }
     };
@@ -290,13 +268,11 @@ const DashboardPage = () => {
     setKpiDetails({ chartData, chartOptions, valori });
   };
 
-  // Prepara i dati per il grafico a torta riepilogativo
   const kpiPieData = {
     labels: ['OK', 'Attenzione', 'Allarme', 'Non Rilevato'],
     datasets: [ { data: [kpiStatusCount.ok, kpiStatusCount.attenzione, kpiStatusCount.allarme, kpiStatusCount.non_rilevato], backgroundColor: ['#4caf50', '#ff9800', '#f44336', '#9e9e9e'], borderWidth: 1, } ],
   };
    const kpiPieOptions = { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Stato Generale KPI' } } };
-
 
   return (
     <Box>
@@ -305,7 +281,7 @@ const DashboardPage = () => {
       </Typography>
       
       <Grid container spacing={3}>
-        {/* Riepilogo KPI e Filtro Area */}
+        {}
         <Grid item xs={12} md={4}>
            <Paper sx={{ p: 2, mb: 2 }}>
                <Typography variant="h6" gutterBottom>Stato Generale</Typography>
@@ -332,19 +308,19 @@ const DashboardPage = () => {
                   <MenuItem value="Logistica">Logistica</MenuItem>
                   <MenuItem value="HR">HR</MenuItem>
                   <MenuItem value="Acquisti">Acquisti</MenuItem>
-                  {/* Aggiungi altre aree se presenti nei dati */}
+                  {}
                 </Select>
               </FormControl>
            </Paper>
         </Grid>
 
-        {/* Lista KPI Filtrata */}
+        {}
         <Grid item xs={12} md={8}>
-            <Paper sx={{ p: 2, height: 'calc(200px + 2rem + 100px)' /* Altezza per Grafico + Spazio + Filtro */ }}>
+            <Paper sx={{ p: 2, height: 'calc(200px + 2rem + 100px)'  }}>
                 <Typography variant="h6" gutterBottom>
                     KPI {selectedArea ? `Area ${selectedArea}` : 'Tutte le Aree'} ({filteredKpis.length})
                 </Typography>
-                 <Box sx={{ maxHeight: 'calc(200px + 2rem + 100px - 60px)' /* Altezza - padding/titolo */, overflowY: 'auto' }}>
+                 <Box sx={{ maxHeight: 'calc(200px + 2rem + 100px - 60px)' , overflowY: 'auto' }}>
                    <List dense>
                      {filteredKpis.map((kpi) => {
                        const status = getKpiStatus(kpi);
@@ -373,7 +349,7 @@ const DashboardPage = () => {
             </Paper>
         </Grid>
 
-         {/* Grafico KPI Selezionato */}
+         {}
          <Grid item xs={12} md={8}>
             <Paper sx={{ p: 3, height: 350 }}>
                  {selectedKpi ? (
@@ -394,9 +370,9 @@ const DashboardPage = () => {
             </Paper>
          </Grid>
 
-         {/* Lista Alert Recenti */}
+         {}
          <Grid item xs={12} md={4}>
-            {/* Questo è il codice che era stato troncato */}
+            {}
            <Paper sx={{ p: 2, height: 350 }}>
                <Typography variant="h6" gutterBottom>
                    <NotificationsIcon sx={{ verticalAlign: 'bottom', mr: 0.5}}/> Alert Recenti
@@ -448,7 +424,7 @@ const DashboardPage = () => {
                    </Button>
                )}
            </Paper>
-             {/* Fine del codice troncato */}
+             {}
          </Grid>
 
       </Grid>

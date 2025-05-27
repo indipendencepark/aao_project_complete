@@ -1,15 +1,13 @@
 services:
-  # Servizio per il database MongoDB
   mongodb:
-    image: mongo:latest # Usa l'immagine ufficiale MongoDB
+    image: mongo:latest
     container_name: aao_mongodb
     ports:
-      - "27017:27017" # Mappa la porta del container alla porta locale (opzionale, utile per debug)
+      - "27017:27017"
     volumes:
-      - mongo-data:/data/db # Volume per persistere i dati del DB
+      - mongo-data:/data/db
     restart: always
 
-  # Servizio per il Backend Node.js/Express
   server:
     platform: linux/amd64
     container_name: aao_server
@@ -21,47 +19,34 @@ services:
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
-      # - /usr/src/app/client/node_modules # Commentato perché non strettamente necessario per il server
     environment:
-      # Variabili d'ambiente per il server
       - NODE_ENV=development
       - PORT=5000
       - MONGO_URI=mongodb://mongodb:27017/aao_system
-      - JWT_SECRET=aao_secret_key_docker_test # Cambia questa chiave!
-      # --- AGGIUNGI QUESTA RIGA ---
-      # Legge OPENAI_API_KEY dal file .env nella stessa directory
-      # di docker-compose.yml e la imposta come variabile d'ambiente
-      # nel container.
+      - JWT_SECRET=aao_secret_key_docker_test
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      # -----------------------------
     depends_on:
       - mongodb
     restart: on-failure
 
-  # Servizio per il Frontend React
   client:
     container_name: aao_client
     build:
-      context: ./client # Contesto di build è la cartella client
-      dockerfile: Dockerfile # Usa il Dockerfile nella cartella client
+      context: ./client
+      dockerfile: Dockerfile
     ports:
-      - "3000:3000" # Mappa la porta 3000 del container alla porta 3000 del Mac
+      - "3000:3000"
     volumes:
-      # Monta il codice sorgente del client per vedere le modifiche live
       - ./client:/usr/src/app/client
-      # Isola node_modules nel container per evitare conflitti con la cartella locale
       - /usr/src/app/client/node_modules
     environment:
       - NODE_ENV=development
-      # A volte necessario per far funzionare l'hot-reload di React dentro Docker
       - CHOKIDAR_USEPOLLING=true
     depends_on:
-      - server # Il client (per le API) dipende dal server
-    stdin_open: true # Necessario per React development server
-    tty: true        # Necessario per React development server
+      - server
+    stdin_open: true
+    tty: true
     restart: on-failure
 
-# Definisce i volumi nominati
 volumes:
   mongo-data:
-  # client_node_modules: # Non usiamo più un volume nominato separato per il client

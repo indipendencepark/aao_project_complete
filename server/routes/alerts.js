@@ -1,33 +1,39 @@
-const express = require('express');
+const express = require("express");
+
 const router = express.Router();
-const authMiddleware = require('../middleware/auth'); // <-- IMPORTA MIDDLEWARE
-// const { Alert } = require('../models/monitoraggio'); // Decommenta
 
-router.use(authMiddleware); // <-- APPLICA MIDDLEWARE A TUTTE
+const authMiddleware = require("../middleware/auth");
 
-// GET /api/alerts - Ora protetta
-router.get('/', async (req, res) => {
-     console.log(`Richiesta GET /api/alerts dall'utente ${req.user.id}`);
-    try {
-        res.json({ message: 'GET tutti gli alert (protetto - placeholder)', data: [] });
-    } catch (err) {
-        console.error("Errore in GET /api/alerts:", err.message);
-        res.status(500).json({ message: 'Errore del server' });
-    }
-});
+router.use(authMiddleware);
 
-// PUT /api/alerts/:id/read - Ora protetta
- router.put('/:id/read', async (req, res) => {
-     console.log(`Richiesta PUT /api/alerts/${req.params.id}/read dall'utente ${req.user.id}`);
-    try {
-        // Logica per aggiornare alert.letto = true
-        res.json({ message: `Alert ${req.params.id} segnato come letto (protetto - placeholder)` });
-    } catch (err) {
-        console.error(`Errore in PUT /api/alerts/${req.params.id}/read:`, err.message);
-        res.status(500).json({ message: 'Errore del server' });
-    }
-});
+router.get("/", (async (req, res) => {
+  console.log(`Richiesta GET /api/alerts dall'utente ${req.user.id}`);
+  try {
+    res.json({
+      message: "GET tutti gli alert (protetto - placeholder)",
+      data: []
+    });
+  } catch (err) {
+    console.error("Errore in GET /api/alerts:", err.message);
+    res.status(500).json({
+      message: "Errore del server"
+    });
+  }
+}));
 
-// --- Aggiungi qui altre routes protette per Alert (es. DELETE) ---
+router.put("/:id/read", (async (req, res) => {
+  console.log(`Richiesta PUT /api/alerts/${req.params.id}/read dall'utente ${req.user.id}`);
+  try {
+
+    res.json({
+      message: `Alert ${req.params.id} segnato come letto (protetto - placeholder)`
+    });
+  } catch (err) {
+    console.error(`Errore in PUT /api/alerts/${req.params.id}/read:`, err.message);
+    res.status(500).json({
+      message: "Errore del server"
+    });
+  }
+}));
 
 module.exports = router;

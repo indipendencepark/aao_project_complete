@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+
 const Schema = mongoose.Schema;
 
-// Schema per le aree funzionali
 const AreaSchema = new Schema({
   nome: {
     type: String,
@@ -17,7 +17,6 @@ const AreaSchema = new Schema({
   }
 });
 
-// Schema per i KPI
 const KpiSchema = new Schema({
   codice: {
     type: String,
@@ -28,17 +27,12 @@ const KpiSchema = new Schema({
     type: String,
     required: true
   },
-  //area_id: {
-  //  type: Schema.Types.ObjectId,
-  //  ref: 'Area',
-  //  required: true
-  //},
-  area: { // <-- AGGIUNTO CAMPO STRINGA
+
+  area: {
+
     type: String,
-    required: true, // Rendiamo obbligatoria la stringa dell'area
-    // Potremmo aggiungere un enum se vogliamo limitare i valori:
-    // enum: ['Commerciale', 'Logistica', 'HR', 'Acquisti', 'Produzione', 'Finanza', 'Altro']
-},
+    required: true
+  },
   definizione: {
     type: String
   },
@@ -57,8 +51,14 @@ const KpiSchema = new Schema({
   valore_target: {
     type: Number
   },
-  soglia_attenzione: { type: Number }, // Nome corretto
-  soglia_allarme: { type: Number },    // Nome corretto
+  soglia_attenzione: {
+    type: Number
+  },
+
+  soglia_allarme: {
+    type: Number
+  },
+
   attivo: {
     type: Boolean,
     default: true
@@ -73,11 +73,10 @@ const KpiSchema = new Schema({
   }
 });
 
-// Schema per i valori dei KPI
 const ValoreKpiSchema = new Schema({
   kpi_id: {
     type: Schema.Types.ObjectId,
-    ref: 'Kpi',
+    ref: "Kpi",
     required: true
   },
   valore: {
@@ -103,16 +102,15 @@ const ValoreKpiSchema = new Schema({
   }
 });
 
-// Schema per gli alert
 const AlertSchema = new Schema({
   kpi_id: {
     type: Schema.Types.ObjectId,
-    ref: 'Kpi',
+    ref: "Kpi",
     required: true
   },
   valore_kpi_id: {
     type: Schema.Types.ObjectId,
-    ref: 'ValoreKpi'
+    ref: "ValoreKpi"
   },
   messaggio: {
     type: String,
@@ -120,13 +118,13 @@ const AlertSchema = new Schema({
   },
   tipo: {
     type: String,
-    enum: ['soglia_minima', 'soglia_massima', 'trend_negativo', 'altro'],
+    enum: [ "soglia_minima", "soglia_massima", "trend_negativo", "altro" ],
     required: true
   },
   livello: {
     type: String,
-    enum: ['info', 'warning', 'critical'],
-    default: 'warning'
+    enum: [ "info", "warning", "critical" ],
+    default: "warning"
   },
   data: {
     type: Date,
@@ -144,11 +142,10 @@ const AlertSchema = new Schema({
   }
 });
 
-// Schema per l'analisi degli scostamenti
 const AnalisiScostamentoSchema = new Schema({
   kpi_id: {
     type: Schema.Types.ObjectId,
-    ref: 'Kpi',
+    ref: "Kpi",
     required: true
   },
   periodo_inizio: {
@@ -187,16 +184,20 @@ const AnalisiScostamentoSchema = new Schema({
   }
 });
 
-const Area = mongoose.model('Area', AreaSchema);
-const Kpi = mongoose.model('Kpi', KpiSchema);
-const ValoreKpi = mongoose.model('ValoreKpi', ValoreKpiSchema);
-const Alert = mongoose.model('Alert', AlertSchema);
-const AnalisiScostamento = mongoose.model('AnalisiScostamento', AnalisiScostamentoSchema);
+const Area = mongoose.model("Area", AreaSchema);
+
+const Kpi = mongoose.model("Kpi", KpiSchema);
+
+const ValoreKpi = mongoose.model("ValoreKpi", ValoreKpiSchema);
+
+const Alert = mongoose.model("Alert", AlertSchema);
+
+const AnalisiScostamento = mongoose.model("AnalisiScostamento", AnalisiScostamentoSchema);
 
 module.exports = {
-  Area,
-  Kpi,
-  ValoreKpi,
-  Alert,
-  AnalisiScostamento
+  Area: Area,
+  Kpi: Kpi,
+  ValoreKpi: ValoreKpi,
+  Alert: Alert,
+  AnalisiScostamento: AnalisiScostamento
 };

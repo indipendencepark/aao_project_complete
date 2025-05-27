@@ -34,9 +34,8 @@ import {
   Tab
 } from '@mui/material';
 
-import { Link } from 'react-router-dom'; // o da '@mui/material/Link'
+import { Link } from 'react-router-dom';
 
-// Chart.js
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -48,25 +47,23 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import { Line, Bar } from 'react-chartjs-2'; // Assicurati che react-chartjs-2 sia installato
+import { Line, Bar } from 'react-chartjs-2';
 
-// Icons
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit'; // Non usato, ma importato nel codice originale
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import WarningIcon from '@mui/icons-material/Warning';
 import ErrorIcon from '@mui/icons-material/Error';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp'; // Non usato, ma importato nel codice originale
-import TrendingDownIcon from '@mui/icons-material/TrendingDown'; // Non usato, ma importato nel codice originale
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'; // Non usato, ma importato
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import BusinessIcon from '@mui/icons-material/Business';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PeopleIcon from '@mui/icons-material/People';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
-// Registrazione dei componenti Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -78,7 +75,6 @@ ChartJS.register(
   Legend
 );
 
-// Dati di esempio per gli alert
 const alertsData = [
   {
     id: '1',
@@ -137,7 +133,6 @@ const alertsData = [
   }
 ];
 
-// Dati di esempio per i KPI (necessari per correlare gli alert)
 const kpiData = [
   { id: '1', nome: 'Fatturato Mensile', area: 'Commerciale' },
   { id: '2', nome: 'Margine Operativo Lordo', area: 'Commerciale' },
@@ -146,9 +141,8 @@ const kpiData = [
   { id: '5', nome: 'Costo Medio Acquisti', area: 'Acquisti' },
 ];
 
-// Componente per la gestione degli alert
 const AlertsPage = () => {
-  const [alerts, setAlerts] = useState(alertsData); // Dati di esempio
+  const [alerts, setAlerts] = useState(alertsData);
   const [filteredAlerts, setFilteredAlerts] = useState(alertsData);
   const [filters, setFilters] = useState({
     tipo: '',
@@ -158,24 +152,8 @@ const AlertsPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [tabValue, setTabValue] = useState(0);
-  const [kpis, setKpis] = useState(kpiData); // Dati di esempio
+  const [kpis, setKpis] = useState(kpiData);
 
-  // Effetto per caricare dati reali (da implementare)
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       // const alertsResponse = await axios.get('http://localhost:5001/api/alerts');
-  //       // setAlerts(alertsResponse.data.data || []);
-  //       // const kpisResponse = await axios.get('http://localhost:5001/api/kpis');
-  //       // setKpis(kpisResponse.data.data || []);
-  //     } catch (error) {
-  //       console.error("Errore caricamento dati:", error);
-  //     }
-  //   };
-  //   fetchData();
-  // }, []);
-
-  // Funzione per applicare i filtri
   useEffect(() => {
     let result = alerts;
     if (filters.tipo) {
@@ -205,14 +183,13 @@ const AlertsPage = () => {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setSelectedAlert(null); // Deseleziona l'alert alla chiusura
+    setSelectedAlert(null);
   };
 
   const handleDeleteAlert = (id) => {
-    // Qui andrebbe implementata la logica API per eliminare l'alert
     console.log(`Eliminazione alert con ID: ${id}`);
     setAlerts(alerts.filter(alert => alert.id !== id));
-    handleCloseDialog(); // Chiudi il dialogo dopo l'eliminazione
+    handleCloseDialog();
   };
 
   const handleTabChange = (event, newValue) => {
@@ -220,7 +197,6 @@ const AlertsPage = () => {
   };
 
   const handleMarkAsRead = (id) => {
-    // Qui andrebbe implementata la logica API per aggiornare lo stato
     console.log(`Segna come letto alert con ID: ${id}`);
     setAlerts(alerts.map(alert => 
       alert.id === id ? { ...alert, letto: true } : alert
@@ -228,7 +204,6 @@ const AlertsPage = () => {
   };
 
   const handleMarkAllAsRead = () => {
-    // Qui andrebbe implementata la logica API per aggiornare tutti gli alert
     console.log('Segna tutti gli alert come letti');
     setAlerts(alerts.map(alert => ({ ...alert, letto: true })));
   };
@@ -259,13 +234,12 @@ const AlertsPage = () => {
       case 'Logistica': return <LocalShippingIcon />;
       case 'HR': return <PeopleIcon />;
       case 'Acquisti': return <ShoppingCartIcon />;
-      default: return <NotificationsIcon />; // Icona di default per area non mappata
+      default: return <NotificationsIcon />;
     }
   };
 
-  // Prepara i dati per il grafico degli alert per area
   const alertsByAreaData = {
-    labels: ['Commerciale', 'Logistica', 'HR', 'Acquisti', 'Altro'], // Aggiunto 'Altro'
+    labels: ['Commerciale', 'Logistica', 'HR', 'Acquisti', 'Altro'],
     datasets: [
       {
         label: 'Attenzione',
@@ -276,7 +250,7 @@ const AlertsPage = () => {
           alerts.filter(a => a.area === 'Acquisti' && a.tipo === 'attenzione').length,
           alerts.filter(a => !['Commerciale', 'Logistica', 'HR', 'Acquisti'].includes(a.area) && a.tipo === 'attenzione').length
         ],
-        backgroundColor: '#ff9800', // Arancione
+        backgroundColor: '#ff9800',
       },
       {
         label: 'Allarme',
@@ -287,7 +261,7 @@ const AlertsPage = () => {
           alerts.filter(a => a.area === 'Acquisti' && a.tipo === 'allarme').length,
            alerts.filter(a => !['Commerciale', 'Logistica', 'HR', 'Acquisti'].includes(a.area) && a.tipo === 'allarme').length
         ],
-        backgroundColor: '#f44336', // Rosso
+        backgroundColor: '#f44336',
       }
     ],
   };
@@ -305,7 +279,7 @@ const AlertsPage = () => {
     },
     scales: {
       x: {
-        stacked: true, // Impila le barre per tipo
+        stacked: true,
       },
       y: {
         stacked: true,
@@ -318,7 +292,6 @@ const AlertsPage = () => {
     },
   };
 
-  // Calcola il numero di alert non letti
   const unreadAlertsCount = alerts.filter(alert => !alert.letto).length;
 
   return (
@@ -345,7 +318,6 @@ const AlertsPage = () => {
         <Tab label="Configurazione" icon={<SettingsIcon />} iconPosition="start" />
       </Tabs>
 
-      {/* Tab: Lista Alert */}
       {tabValue === 0 && (
         <>
           <Paper sx={{ p: 3, mb: 4 }}>
@@ -385,7 +357,6 @@ const AlertsPage = () => {
                     <MenuItem value="Logistica">Logistica</MenuItem>
                     <MenuItem value="HR">HR</MenuItem>
                     <MenuItem value="Acquisti">Acquisti</MenuItem>
-                    {/* Aggiungi altre aree se necessario */}
                   </Select>
                 </FormControl>
               </Grid>
@@ -459,7 +430,7 @@ const AlertsPage = () => {
                               />
                             </TableCell>
                             <TableCell align="right">
-                              <IconButton color="primary" title="Dettagli KPI" size="small" component={Link} to={`/monitoraggio/kpi`}> {/* Dovrebbe puntare al dettaglio specifico */}
+                              <IconButton color="primary" title="Dettagli KPI" size="small" component={Link} to={`/monitoraggio/kpi`}>
                                 <VisibilityIcon fontSize="small" />
                               </IconButton>
                               {!alert.letto && (
@@ -483,7 +454,6 @@ const AlertsPage = () => {
 
           </Paper>
 
-          {/* Dialog di conferma eliminazione */}
           <Dialog open={openDialog} onClose={handleCloseDialog}>
             <DialogTitle>Conferma Eliminazione</DialogTitle>
             <DialogContent>
@@ -495,7 +465,6 @@ const AlertsPage = () => {
               </Typography>
             </DialogContent>
             <DialogActions>
-               {/* Completamento del tag Button troncato */}
               <Button onClick={handleCloseDialog}>Annulla</Button> 
               <Button 
                 onClick={() => handleDeleteAlert(selectedAlert?.id)} 
@@ -509,7 +478,6 @@ const AlertsPage = () => {
         </>
       )}
 
-      {/* Tab: Analisi */}
       {tabValue === 1 && (
           <Paper sx={{ p: 3, mb: 4 }}>
              <Typography variant="h6" gutterBottom>
@@ -537,13 +505,11 @@ const AlertsPage = () => {
                               <ListItemText primary="Alert di Attenzione" secondary={alerts.filter(a => a.tipo === 'attenzione').length} />
                           </ListItem>
                      </List>
-                     {/* Potrebbe esserci un altro grafico qui, es. trend temporale */}
                  </Grid>
               </Grid>
           </Paper>
       )}
 
-       {/* Tab: Configurazione */}
        {tabValue === 2 && (
           <Paper sx={{ p: 3, mb: 4 }}>
              <Typography variant="h6" gutterBottom>
@@ -552,7 +518,6 @@ const AlertsPage = () => {
               <Alert severity="info">
                  Questa sezione permetterà di configurare le regole di generazione degli alert e le notifiche (non ancora implementato).
              </Alert>
-             {/* Qui andranno i campi per la configurazione */}
           </Paper>
        )}
 
@@ -560,7 +525,6 @@ const AlertsPage = () => {
   );
 };
 
-// Icone mancanti (placeholder, da importare correttamente se usate)
 const SettingsIcon = NotificationsIcon; 
 const AnalyticsIcon = NotificationsIcon;
 

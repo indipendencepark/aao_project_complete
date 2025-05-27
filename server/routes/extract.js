@@ -1,208 +1,166 @@
-// START OF FILE server/routes/extract.js (AGGIORNATO con OpenAI)
 
-const express = require('express');
+const express = require("express");
+
 const router = express.Router();
-const multer = require('multer');
-const pdf = require('pdf-parse');
-const dotenv = require('dotenv');
-const { OpenAI } = require('openai'); // Importa la libreria OpenAI
 
-dotenv.config(); // Carica variabili d'ambiente
+const multer = require("multer");
 
-// --- Configurazione OpenAI ---
-const openaiApiKey = process.env.OPENAI_API_KEY;
-if (!openaiApiKey) {
-    console.error("ERRORE FATALE: La variabile d'ambiente OPENAI_API_KEY non è impostata.");
-    // In un'app reale, potresti voler gestire questo diversamente,
-    // ma per ora blocchiamo l'avvio se la chiave manca.
-    // process.exit(1); // Commentato per permettere l'avvio anche senza chiave per testare altre parti
-}
-// Inizializza il client OpenAI solo se la chiave è presente
-const openai = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
+const pdf = require("pdf-parse");
 
-// --- Configurazione Multer ---
-const upload = multer({ storage: multer.memoryStorage() });
+const mammoth = require("mammoth");
 
-// --- Helper per Validazione Data (opzionale, ma consigliato) ---
-// Controlla se una stringa è nel formato YYYY-MM-DD e rappresenta una data valida
-const isValidISODateString = (dateString) => {
-    if (!dateString || typeof dateString !== 'string') return false;
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regex.test(dateString)) return false;
-    const date = new Date(dateString);
-    // Ulteriore check per date invalide tipo 2023-02-31
-    const timestamp = date.getTime();
-    if (typeof timestamp !== 'number' || Number.isNaN(timestamp)) {
-        return false;
-    }
-    // Confronta se la data parsata, riconvertita in YYYY-MM-DD, corrisponde all'originale
-    // Questo gestisce casi come "2023-02-30" che diventano "2023-03-02"
-    return date.toISOString().startsWith(dateString);
-};
+const xlsx = require("xlsx");
 
+const {OpenAI: OpenAI} = require("openai");
 
-// --- Funzione per Chiamare OpenAI ---
-/**
- * Invia il testo della visura a OpenAI per l'estrazione dei dati.
- * @param {string} pdfText Testo estratto dal PDF.
- * @returns {Promise<object|null>} Oggetto JSON con i dati estratti o null in caso di errore.
- */
-async function extractDataWithOpenAI(pdfText) {
-    if (!openai) {
-        console.error("OpenAI client non inizializzato (manca API key?).");
-        throw new Error("Configurazione OpenAI mancante.");
-    }
-    if (!pdfText || pdfText.trim().length < 100) { // Controllo base sulla lunghezza del testo
-        console.error("Testo PDF troppo corto o mancante per l'analisi AI.");
-        throw new Error("Testo PDF insufficiente per l'analisi.");
-    }
+const dotenv = require("dotenv");
 
-    const modelToUse = "gpt-3.5-turbo"; // Modello più economico per iniziare, considera gpt-4o o gpt-4-turbo per maggiore accuratezza
-    console.log(`>>> Chiamata API OpenAI con modello: ${modelToUse}`);
+const path = require("path");
 
-    // ---- PROMPT DETTAGLIATO ----
-    const promptMessages = [
-        {
-            role: "system",
-            content: `Sei un assistente esperto nell'analisi di documenti PDF di Visure Camerali Italiane. Il tuo compito è estrarre informazioni specifiche e restituirle ESCLUSIVAMENTE come un oggetto JSON valido. Identifica i seguenti campi nel testo fornito e popola l'oggetto JSON corrispondente. Usa 'null' se un campo non è trovato o non applicabile. Assicurati che le date siano nel formato YYYY-MM-DD e i numeri siano di tipo numerico.`
-        },
-        {
-            role: "user",
-            content: `Dal seguente testo estratto da una Visura Camerale Italiana, estrai i dati richiesti e restituiscili nel formato JSON specificato:
-
-Formato JSON Atteso:
-{
-  "nome": "string | null", // Denominazione o Ragione Sociale
-  "codiceFiscale": "string | null", // Codice fiscale (alfanumerico)
-  "partitaIva": "string | null", // Partita IVA (numerica)
-  "formaGiuridica": "string | null", // Es: "societa' a responsabilita' limitata"
-  "pec": "string | null", // Indirizzo PEC
-  "reaNumero": "string | null", // Solo il numero REA
-  "reaProvincia": "string | null", // Sigla provincia REA (es: "BA")
-  "sede_via": "string | null", // Via/Piazza/Strada e numero civico
-  "sede_cap": "string | null", // CAP (5 cifre)
-  "sede_comune": "string | null",
-  "sede_provincia": "string | null", // Sigla provincia sede (es: "BA")
-  "capitaleSociale": number | null, // Valore numerico del capitale SOTTOSCRITTO
-  "statoAttivita": "string | null", // Es: "attiva", "cessata"
-  "dataCostituzione": "string YYYY-MM-DD | null",
-  "dataIscrizioneRI": "string YYYY-MM-DD | null", // Data iscrizione Registro Imprese
-  "dataInizioAttivita": "string YYYY-MM-DD | null",
-  "atecoPrimario": "string | null", // Codice numerico ATECO primario
-  "attivitaPrevalente": "string | null", // Descrizione testuale attività
-  "numeroAddetti": number | null,
-  "dataRiferimentoAddetti": "string YYYY-MM-DD | null",
-  "numeroAmministratori": number | null,
-  "sistemaAmministrazione": "string | null", // Es: "consiglio di amministrazione"
-  "organoControlloPresente": boolean | null,
-  "tipoOrganoControllo": "string | null", // Es: "Sindaco Unico"
-  "numeroUnitaLocali": number | null,
-  "partecipazioni": boolean | null // true se 'sì', false se 'no' o non specificato
-}
-
-Testo della Visura:
-"""
-${pdfText}
-"""
-
-Restituisci SOLO l'oggetto JSON richiesto, senza alcun testo aggiuntivo prima o dopo.`
-        }
-    ];
-    // ---- FINE PROMPT ----
-
-    try {
-        const completion = await openai.chat.completions.create({
-            model: modelToUse,
-            messages: promptMessages,
-            temperature: 0.2, // Bassa temperatura per output più fattuale
-            // Potresti aggiungere response_format se usi modelli compatibili:
-            // response_format: { type: "json_object" },
-        });
-
-        const responseContent = completion.choices[0]?.message?.content;
-        if (!responseContent) {
-            throw new Error("Risposta vuota dall'API OpenAI.");
-        }
-
-        console.log(">>> Risposta grezza da OpenAI:", responseContent);
-
-        // Tenta di pulire la risposta se contiene markdown ```json ... ```
-        const cleanedResponse = responseContent.replace(/^```json\s*|```$/g, '').trim();
-
-        // Parsa la risposta JSON
-        let extractedJson;
-        try {
-            extractedJson = JSON.parse(cleanedResponse);
-            console.log(">>> JSON Parsato con successo:", extractedJson);
-            return extractedJson; // Restituisce l'oggetto JSON parsato
-        } catch (parseError) {
-            console.error(">>> ERRORE: Impossibile parsare il JSON dalla risposta OpenAI:", parseError);
-            console.error(">>> Risposta ricevuta che ha causato l'errore:", cleanedResponse);
-            throw new Error("Formato JSON non valido ricevuto dall'AI.");
-        }
-
-    } catch (error) {
-        console.error(">>> ERRORE durante la chiamata API OpenAI:", error);
-        // Controlla se l'errore è specifico dell'API OpenAI (es. chiave errata, quota superata)
-        if (error.response) {
-            console.error(">>> Dettagli Errore API OpenAI:", error.response.data);
-            throw new Error(`Errore API OpenAI: ${error.response.data?.error?.message || error.message}`);
-        } else {
-            throw new Error(`Errore durante la comunicazione con OpenAI: ${error.message}`);
-        }
-    }
-}
-
-// --- Route POST /api/extract/visura ---
-router.post('/visura', upload.single('visuraPdf'), async (req, res) => {
-    console.log(">>> Ricevuta richiesta POST /api/extract/visura (con AI)");
-    if (!openai) {
-         return res.status(503).json({ message: "Servizio di estrazione AI non configurato correttamente (manca API Key)." });
-    }
-    if (!req.file) {
-        return res.status(400).json({ message: 'Nessun file PDF caricato.' });
-    }
-
-    try {
-        console.log(">>> Parsing PDF...");
-        const pdfData = await pdf(req.file.buffer);
-        const text = pdfData.text;
-        console.log(`>>> PDF Parsato. Lunghezza testo: ${text.length} caratteri.`);
-
-        // Chiama la funzione che usa OpenAI
-        const extractedData = await extractDataWithOpenAI(text);
-
-        // --- VALIDAZIONE OPZIONALE POST-AI ---
-        // Esempio: valida le date e converti eventuali numeri stringa
-        const validatedData = { ...extractedData };
-        const dateFields = ['dataCostituzione', 'dataIscrizioneRI', 'dataInizioAttivita', 'dataRiferimentoAddetti'];
-        dateFields.forEach(field => {
-            if (validatedData[field] && !isValidISODateString(validatedData[field])) {
-                console.warn(`AI ha restituito una data non valida per ${field}: ${validatedData[field]}. Impostato a null.`);
-                validatedData[field] = null;
-            }
-        });
-        // Esempio validazione/conversione numeri (se l'AI restituisse stringhe)
-        const numericFields = ['capitaleSociale', 'numeroAddetti', 'numeroAmministratori', 'numeroUnitaLocali'];
-        numericFields.forEach(field => {
-             if (validatedData[field] !== null && typeof validatedData[field] !== 'number') {
-                 const num = Number(validatedData[field]);
-                 validatedData[field] = isNaN(num) ? null : num;
-                 if(isNaN(num)) console.warn(`AI ha restituito un valore non numerico per ${field}: ${validatedData[field]}. Impostato a null.`);
-             }
-        });
-        // --- FINE VALIDAZIONE OPZIONALE ---
-
-        console.log(">>> Dati Finali (da AI, validati) da inviare:", validatedData);
-
-        res.json({ message: 'Dati estratti con successo tramite AI.', data: validatedData });
-
-    } catch (error) {
-        console.error('Errore nel processo di estrazione AI:', error);
-        res.status(500).json({ message: `Errore durante l'estrazione AI: ${error.message}` });
-    }
+dotenv.config({
+  path: path.join(__dirname, "../../../.env")
 });
 
-module.exports = router;
+const openaiApiKey = process.env.OPENAI_API_KEY;
 
-// END OF FILE server/routes/extract.js (AGGIORNATO con OpenAI)
+const modelToUseForExtraction = process.env.OPENAI_MODEL_FOR_EXTRACTION || "gpt-4.1-nano";
+
+const openai = openaiApiKey ? new OpenAI({
+  apiKey: openaiApiKey
+}) : null;
+
+const upload = multer({
+  storage: multer.memoryStorage()
+});
+
+async function extractTextFromPdf(buffer) {
+  try {
+    const data = await pdf(buffer);
+    return data.text;
+  } catch (error) {
+    console.error("Errore estrazione testo da PDF:", error);
+    throw new Error("Impossibile estrarre testo da PDF.");
+  }
+}
+
+async function extractTextFromDocx(buffer) {
+  try {
+    const result = await mammoth.extractRawText({
+      buffer: buffer
+    });
+    return result.value;
+  } catch (error) {
+    console.error("Errore estrazione testo da DOCX:", error);
+    throw new Error("Impossibile estrarre testo da DOCX.");
+  }
+}
+
+async function extractTextFromXlsx(buffer) {
+  try {
+    const workbook = xlsx.read(buffer, {
+      type: "buffer"
+    });
+    let fullText = "";
+    workbook.SheetNames.forEach((sheetName => {
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = xlsx.utils.sheet_to_json(worksheet, {
+        header: 1
+      });
+      jsonData.forEach((row => {
+        if (Array.isArray(row)) {
+          fullText += row.map((cell => cell !== null && cell !== undefined ? String(cell) : "")).join("\t") + "\n";
+        }
+      }));
+      fullText += "\n--- Nuovo Foglio ---\n";
+    }));
+    return fullText.trim();
+  } catch (error) {
+    console.error("Errore estrazione testo da XLSX:", error);
+    throw new Error("Impossibile estrarre testo da XLSX.");
+  }
+}
+
+router.post("/", upload.single("file"), (async (req, res) => {
+  console.log(">>> Ricevuta richiesta POST /api/extract");
+  if (!req.file) {
+    return res.status(400).json({
+      message: "Nessun file caricato."
+    });
+  }
+  if (!openai) {
+    return res.status(503).json({
+      message: "Servizio AI non disponibile (OpenAI client non inizializzato)."
+    });
+  }
+  const {contesto: contesto, tipoOutputAtteso: tipoOutputAtteso, istruzioniSpecifiche: istruzioniSpecifiche} = req.body;
+  const buffer = req.file.buffer;
+  const mimetype = req.file.mimetype;
+  let extractedText = "";
+  try {
+    console.log(`>>> Estrazione testo da file ${req.file.originalname} (MIME: ${mimetype})`);
+    if (mimetype === "application/pdf") {
+      extractedText = await extractTextFromPdf(buffer);
+    } else if (mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      extractedText = await extractTextFromDocx(buffer);
+    } else if (mimetype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+      extractedText = await extractTextFromXlsx(buffer);
+    } else if (mimetype === "text/plain" || mimetype === "text/markdown" || mimetype === "text/csv") {
+      extractedText = buffer.toString("utf8");
+    } else {
+      return res.status(415).json({
+        message: "Tipo file non supportato per estrazione testo diretta."
+      });
+    }
+    if (!extractedText || extractedText.trim().length < 10) {
+      console.warn("Testo estratto vuoto o troppo corto:", extractedText);
+      return res.status(422).json({
+        message: "Estrazione testo non riuscita o testo insufficiente."
+      });
+    }
+    console.log(`>>> Testo estratto (prime 200 chars): ${extractedText.substring(0, 200)}...`);
+    console.log(`>>> Testo estratto (ultime 100 chars): ...${extractedText.substring(extractedText.length - 100)}`);
+    console.log(`>>> Lunghezza testo estratto: ${extractedText.length} caratteri.`);
+    const systemPrompt = `Sei un assistente AI avanzato specializzato nell'estrazione di informazioni strutturate da testi non strutturati. L'utente fornirà un testo e delle istruzioni su cosa estrarre. Devi seguire le istruzioni il più fedelmente possibile e restituire l'output nel formato richiesto (preferibilmente JSON se non specificato diversamente).`;
+    let userPrompt = `**CONTESTO DELL'ESTRAZIONE:**\n${contesto || "Non specificato."}\n\n`;
+    userPrompt += `**TESTO DA CUI ESTRARRE LE INFORMAZIONI:**\n---\n${extractedText}\n---\n\n`;
+    userPrompt += `**ISTRUZIONI SPECIFICHE PER L'ESTRAZIONE:**\n${istruzioniSpecifiche || "Estrai le informazioni chiave in modo strutturato."}\n\n`;
+    userPrompt += `**TIPO DI OUTPUT ATTESO:** ${tipoOutputAtteso || "JSON contenente i dati estratti."}\n`;
+    userPrompt += `Assicurati che l'output sia direttamente utilizzabile e ben formattato secondo il tipo richiesto.`;
+    if (tipoOutputAtteso && tipoOutputAtteso.toLowerCase().includes("json")) {
+      userPrompt += ` Se l'output richiesto è JSON, fornisci solo l'oggetto JSON valido, senza testo o spiegazioni aggiuntive prima o dopo di esso. Se l'estrazione produce una lista di oggetti, restituisci un array JSON. Se non ci sono dati da estrarre coerenti con le istruzioni, restituisci un oggetto JSON vuoto {} o un array JSON vuoto [].`;
+    }
+    console.log(`>>> Chiamata API OpenAI (${modelToUseForExtraction}) per estrazione strutturata...`);
+    const completion = await openai.chat.completions.create({
+      model: modelToUseForExtraction,
+      messages: [ {
+        role: "system",
+        content: systemPrompt
+      }, {
+        role: "user",
+        content: userPrompt
+      } ],
+      temperature: .2,
+      response_format: tipoOutputAtteso && tipoOutputAtteso.toLowerCase().includes("json") ? {
+        type: "json_object"
+      } : undefined
+    });
+    const extractedData = completion.choices[0]?.message?.content;
+    if (!extractedData) {
+      throw new Error("Risposta AI vuota o non valida per l'estrazione.");
+    }
+    console.log(">>> Dati estratti da AI:", extractedData);
+    res.json({
+      message: "Estrazione completata con successo.",
+      fileName: req.file.originalname,
+      extractedRawTextLength: extractedText.length,
+      extractedAIOutput: extractedData
+    });
+  } catch (error) {
+    console.error("!!! Errore durante il processo di estrazione:", error);
+    res.status(500).json({
+      message: error.message || "Errore del server durante l'estrazione."
+    });
+  }
+}));
+
+module.exports = router;

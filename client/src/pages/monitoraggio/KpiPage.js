@@ -4,20 +4,17 @@ import {
   Box, Typography, Paper, Grid, Button, Table, TableBody,
   TableCell, TableContainer, TableHead, TableRow, Alert, IconButton,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl,
-  InputLabel, Select, MenuItem, CircularProgress, Divider // Aggiunto Divider
+  InputLabel, Select, MenuItem, CircularProgress, Divider
 } from '@mui/material';
-// Importa DatePicker e provider di localizzazione
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
-import { it } from 'date-fns/locale'; // Locale italiano per date-fns
+import { it } from 'date-fns/locale';
 
-// Icons
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 
-// --- Componente Form Nuovo KPI ---
 const NewKpiForm = ({ onSave, onCancel, isLoading, apiError, apiSuccess }) => {
     const [formData, setFormData] = useState({
         codice: '', nome: '', area: '', definizione: '', formula: '', unita: '', frequenza: 'mensile', utilita: '',
@@ -68,7 +65,6 @@ const NewKpiForm = ({ onSave, onCancel, isLoading, apiError, apiSuccess }) => {
                    <Grid item xs={12} sm={4}> <TextField name="valore_target" label="Valore Target" type="number" value={formData.valore_target} onChange={handleInputChange} fullWidth InputLabelProps={{ shrink: true }} /> </Grid>
                    <Grid item xs={12} sm={4}> <TextField name="soglia_attenzione" label="Soglia Attenzione" type="number" value={formData.soglia_attenzione} onChange={handleInputChange} fullWidth InputLabelProps={{ shrink: true }}/> </Grid>
                    <Grid item xs={12} sm={4}> <TextField name="soglia_allarme" label="Soglia Allarme" type="number" value={formData.soglia_allarme} onChange={handleInputChange} fullWidth InputLabelProps={{ shrink: true }}/> </Grid>
-                   {/* Aggiungere Checkbox per 'attivo' se necessario */}
                    <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
                        <Button variant="outlined" onClick={onCancel} disabled={isLoading}> Annulla </Button>
                        <Button type="submit" variant="contained" color="primary" disabled={isLoading}> {isLoading ? <CircularProgress size={24} /> : 'Salva KPI'} </Button>
@@ -79,9 +75,7 @@ const NewKpiForm = ({ onSave, onCancel, isLoading, apiError, apiSuccess }) => {
    );
 };
 
-// --- Componente Form Aggiungi Valore ---
 const AddValueForm = ({ kpi, onSave, onCancel, isLoading, apiError }) => {
-    // Stato locale per questo form specifico
     const [localFormData, setLocalFormData] = useState({ valore: '', data: new Date(), note: ''});
 
     const handleLocalChange = (e) => {
@@ -101,7 +95,7 @@ const AddValueForm = ({ kpi, onSave, onCancel, isLoading, apiError }) => {
             note: localFormData.note
         };
          if (dataToSubmit.valore === null || !dataToSubmit.data) {
-             alert("Valore e Data sono obbligatori."); // Alert semplice per ora
+             alert("Valore e Data sono obbligatori.");
              return;
          }
         onSave(dataToSubmit);
@@ -119,7 +113,6 @@ const AddValueForm = ({ kpi, onSave, onCancel, isLoading, apiError }) => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={it}>
-                           {/* Uso del componente slot per Textfield come suggerito per MUI v6+ */}
                            <DatePicker
                                label="Data Rilevazione/Periodo"
                                value={localFormData.data}
@@ -141,12 +134,9 @@ const AddValueForm = ({ kpi, onSave, onCancel, isLoading, apiError }) => {
   );
 };
 
-
-// --- Componente Principale KpiPage ---
 const KpiPage = () => {
   console.log("--- RENDER KpiPage INIZIATO ---");
 
-  // Stati
   const [kpis, setKpis] = useState([]);
   const [filteredKpis, setFilteredKpis] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -164,8 +154,6 @@ const KpiPage = () => {
   const [showAddValueForm, setShowAddValueForm] = useState(false);
   const [savingValue, setSavingValue] = useState(false);
 
-
-  // Funzione Caricamento Lista KPI
   const fetchKpis = async () => {
     console.log(">>> fetchKpis INIZIATA");
     setLoading(true); setError(null); setSuccessMessage(null);
@@ -175,7 +163,6 @@ const KpiPage = () => {
       console.log(">>> Risposta API GET KPI:", response.data);
       const receivedData = response.data.data || [];
       setKpis(receivedData);
-      // Applica subito i filtri correnti
       let result = receivedData;
         if (filters.area) { result = result.filter(kpi => kpi.area === filters.area); }
         if (filters.frequenza) { result = result.filter(kpi => kpi.frequenza === filters.frequenza); }
@@ -189,14 +176,11 @@ const KpiPage = () => {
     } finally { setLoading(false); console.log(">>> fetchKpis COMPLETATA"); }
   };
 
-  // useEffect Caricamento Iniziale
    useEffect(() => {
       console.log(">>> useEffect [] - Eseguo fetchKpis al mount");
       fetchKpis();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // useEffect Filtri
   useEffect(() => {
     console.log(">>> useEffect [kpis, filters] - Applica filtro");
     let result = kpis;
@@ -206,7 +190,6 @@ const KpiPage = () => {
     console.log(">>> filteredKpis aggiornato dopo cambio filtri");
   }, [kpis, filters]);
 
-  // --- Funzioni Handler ---
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     console.log(`>>> Filtro cambiato: ${name} = ${value}`);
@@ -219,7 +202,6 @@ const KpiPage = () => {
     setSelectedKpiToDelete(null);
   };
 
-  // Gestione Eliminazione
   const handleDeleteKpi = async (id) => {
     if (!id) return;
     console.log(`>>> handleDeleteKpi chiamato per ID: ${id}`);
@@ -236,7 +218,6 @@ const KpiPage = () => {
     } finally { handleCloseDialog(); setLoading(false); }
   };
 
-  // Funzione Caricamento Valori KPI Specifico
   const fetchKpiValues = async (kpiId) => {
     if (!kpiId) return;
     console.log(`>>> fetchKpiValues chiamata per KPI ID: ${kpiId}`);
@@ -254,17 +235,14 @@ const KpiPage = () => {
     } finally { setLoadingValues(false); }
   };
 
-  // Gestione Viste
   const handleViewDetail = (kpi) => { console.log(">>> handleViewDetail chiamato per:", kpi); setSelectedKpiDetail(kpi); setShowDetailView(true); setShowNewForm(false); setShowAddValueForm(false); fetchKpiValues(kpi._id); };
   const handleBackToList = () => { console.log(">>> handleBackToList chiamato"); setShowDetailView(false); setSelectedKpiDetail(null); setShowAddValueForm(false); };
   const handleNewKpi = () => { console.log(">>> handleNewKpi chiamato"); setSelectedKpiDetail(null); setShowDetailView(false); setShowAddValueForm(false); setShowNewForm(true); setError(null); setSuccessMessage(null); };
   const handleBackFromNew = () => { console.log(">>> handleBackFromNew chiamato"); setShowNewForm(false); };
 
-  // Gestione Form Aggiunta Valore
   const handleAddValueClick = () => { console.log(">>> handleAddValueClick chiamato"); setError(null); setSuccessMessage(null); setShowAddValueForm(true); setShowDetailView(false); };
   const handleBackFromAddValue = () => { console.log(">>> handleBackFromAddValue chiamato"); setShowAddValueForm(false); if (selectedKpiDetail) { setShowDetailView(true); } };
 
-  // Salva Nuovo Valore KPI
   const handleSaveNewValue = async (formData) => {
     if (!selectedKpiDetail?._id) return;
     console.log(">>> handleSaveNewValue chiamato con:", formData);
@@ -285,7 +263,6 @@ const KpiPage = () => {
     } finally { setSavingValue(false); }
   };
 
-   // Salva Nuovo KPI
    const handleSaveNewKpi = async (formData) => {
      console.log(">>> handleSaveNewKpi chiamato con:", formData);
      setLoading(true); setError(null); setSuccessMessage(null);
@@ -303,33 +280,26 @@ const KpiPage = () => {
      } finally { setLoading(false); }
    };
 
-  // --- Log Stato Prima del Return ---
   console.log("--- STATO PRIMA DEL RETURN ---");
   console.log("loading:", loading, "savingValue:", savingValue, "loadingValues:", loadingValues);
   console.log("error:", error, "errorValues:", errorValues);
   console.log("showNewForm:", showNewForm, "showDetailView:", showDetailView, "showAddValueForm:", showAddValueForm);
-  // console.log("filteredKpis:", filteredKpis); // Log troppo verboso, lo commentiamo
-  // console.log("selectedKpiDetail:", selectedKpiDetail);
-  // console.log("selectedKpiValues:", selectedKpiValues);
 
-  // --- Rendering Principale ---
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={it}> {/* Provider per DatePicker */}
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={it}>
         <Box>
         {showNewForm ? (
             <NewKpiForm onSave={handleSaveNewKpi} onCancel={handleBackFromNew} isLoading={loading} apiError={error} apiSuccess={successMessage} />
-        ) : showAddValueForm && selectedKpiDetail ? ( // Aggiunto check per selectedKpiDetail
+        ) : showAddValueForm && selectedKpiDetail ? (
             <AddValueForm kpi={selectedKpiDetail} onSave={handleSaveNewValue} onCancel={handleBackFromAddValue} isLoading={savingValue} apiError={error} />
         ) : showDetailView && selectedKpiDetail ? (
-            // --- VISTA DETTAGLIO KPI ---
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="h5">Dettaglio KPI: {selectedKpiDetail.nome}</Typography>
                     <Button variant="outlined" size="small" onClick={handleBackToList}>Torna alla Lista</Button>
                 </Box>
-                <Divider sx={{ mb: 3 }} />
 
-                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>} {/* Errore salvataggio valore */}
+                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
                 {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
 
                 <Typography variant="h6" gutterBottom>Informazioni KPI</Typography>
@@ -346,7 +316,7 @@ const KpiPage = () => {
                     <Grid item xs={6}><Typography variant="body2"><strong>Soglia Allarme:</strong> {selectedKpiDetail.soglia_allarme ?? 'N/D'}</Typography></Grid>
                 </Grid>
 
-                <Button variant="outlined" startIcon={<EditIcon />} sx={{ mr: 2 }} /* onClick={handleEditKpi} */ > Modifica KPI </Button>
+                <Button variant="outlined" startIcon={<EditIcon />} sx={{ mr: 2 }} > Modifica KPI </Button>
                 <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddValueClick} disabled={savingValue}> Aggiungi Nuovo Valore </Button>
 
                 <Typography variant="h6" sx={{ mt: 4, mb: 1 }}>Storico Valori</Typography>
@@ -374,11 +344,9 @@ const KpiPage = () => {
                         </Table>
                     </TableContainer>
                 )}
-                {/* TODO: Grafico Storico Valori */}
 
             </Paper>
         ) : (
-            // --- VISTA LISTA KPI ---
             <>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h5">Gestione KPI</Typography>
@@ -390,18 +358,15 @@ const KpiPage = () => {
 
                 <Paper sx={{ p: 3, mb: 4 }}>
                     <Typography variant="body1" paragraph> Elenco degli Indicatori Chiave di Performance (KPI) monitorati. </Typography>
-                    {/* Filtri */}
                     <Grid container spacing={3} sx={{ mb: 3 }}>
                         <Grid item xs={12} md={6}><FormControl fullWidth><InputLabel id="area-filter-label">Area</InputLabel><Select labelId="area-filter-label" name="area" label="Area" value={filters.area} onChange={handleFilterChange}><MenuItem value="">Tutte</MenuItem><MenuItem value="Commerciale">Commerciale</MenuItem><MenuItem value="Logistica">Logistica</MenuItem><MenuItem value="HR">HR</MenuItem><MenuItem value="Acquisti">Acquisti</MenuItem><MenuItem value="Produzione">Produzione</MenuItem><MenuItem value="Finanza">Finanza</MenuItem><MenuItem value="Altro">Altro</MenuItem></Select></FormControl></Grid>
                         <Grid item xs={12} md={6}><FormControl fullWidth><InputLabel id="freq-filter-label">Frequenza</InputLabel><Select labelId="freq-filter-label" name="frequenza" label="Frequenza" value={filters.frequenza} onChange={handleFilterChange}><MenuItem value="">Tutte</MenuItem><MenuItem value="giornaliera">Giornaliera</MenuItem><MenuItem value="settimanale">Settimanale</MenuItem><MenuItem value="mensile">Mensile</MenuItem><MenuItem value="trimestrale">Trimestrale</MenuItem><MenuItem value="semestrale">Semestrale</MenuItem><MenuItem value="annuale">Annuale</MenuItem></Select></FormControl></Grid>
                     </Grid>
 
-                    {/* Tabella KPI */}
                     {loading && <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}><CircularProgress /></Box>}
                     <TableContainer>
                         <Table>
                             <TableHead><TableRow><TableCell>Codice</TableCell><TableCell>Nome</TableCell><TableCell>Area</TableCell><TableCell>Unità</TableCell><TableCell>Target</TableCell><TableCell>Azioni</TableCell></TableRow></TableHead>
-                             {/* Ripristinata tabella originale */}
                              <TableBody>
                                {filteredKpis.length === 0 && !loading && (<TableRow><TableCell colSpan={6} align="center">Nessun KPI trovato. Creane uno nuovo.</TableCell></TableRow>)}
                                {filteredKpis.map((kpi) => (
@@ -410,10 +375,10 @@ const KpiPage = () => {
                                    <TableCell>{kpi.nome ?? 'N/A'}</TableCell>
                                    <TableCell>{kpi.area ?? 'N/A'}</TableCell>
                                    <TableCell>{kpi.unita ?? 'N/A'}</TableCell>
-                                   <TableCell>{kpi.valore_target != null ? kpi.valore_target.toLocaleString('it-IT') : 'N/D'}</TableCell> {/* Formatta numero se presente */}
+                                   <TableCell>{kpi.valore_target != null ? kpi.valore_target.toLocaleString('it-IT') : 'N/D'}</TableCell>
                                    <TableCell padding="none">
                                      <IconButton size="small" color="primary" title="Visualizza Dettaglio" onClick={() => handleViewDetail(kpi)}><VisibilityIcon fontSize="inherit"/></IconButton>
-                                     <IconButton size="small" color="secondary" title="Modifica" disabled /* onClick={() => handleEditKpi(kpi)} */><EditIcon fontSize="inherit"/></IconButton>
+                                     <IconButton size="small" color="secondary" title="Modifica" disabled><EditIcon fontSize="inherit"/></IconButton>
                                      <IconButton size="small" color="error" title="Elimina" onClick={() => { setSelectedKpiToDelete(kpi); setOpenDialog(true); }}><DeleteIcon fontSize="inherit"/></IconButton>
                                    </TableCell>
                                  </TableRow>
@@ -423,7 +388,6 @@ const KpiPage = () => {
                     </TableContainer>
                 </Paper>
 
-                {/* Dialogo Conferma Eliminazione */}
                 <Dialog open={openDialog} onClose={handleCloseDialog}>
                     <DialogTitle>Conferma Eliminazione</DialogTitle>
                     <DialogContent><Typography>Sei sicuro di voler eliminare il KPI "{selectedKpiToDelete?.nome}"?</Typography><Typography color="error" variant="body2" sx={{mt: 1}}>Questa azione non può essere annullata.</Typography></DialogContent>

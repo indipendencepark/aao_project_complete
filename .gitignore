@@ -1,4 +1,3 @@
-# Node.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -9,24 +8,19 @@ pids/
 *.log
 *.lock
 
-# Build del client React
 client/build/
 
-# File di ambiente (NON CARICARLI MAI!)
 .env
 .env.*
-!/.env.example # Se hai un file .env.example, puoi includerlo
+!/.env.example
 
-# File generati dalla Knowledge Base AI (se non vuoi versionarli)
-server/knowledge/concatenated_kb.txt # Commenta se vuoi versionarlo
-server/knowledge/indexed_kb_data.json # Commenta se vuoi versionarlo
+server/knowledge/concatenated_kb.txt
+server/knowledge/indexed_kb_data.json
 server/docs_kb/
 
-# File specifici del sistema operativo
 .DS_Store
 Thumbs.db
 
-# File specifici dell'editor/IDE
 .vscode/
 .idea/
 *.swp

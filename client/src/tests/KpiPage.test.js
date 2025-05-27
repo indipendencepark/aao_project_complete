@@ -3,14 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import KpiPage from '../pages/monitoraggio/KpiPage';
 
-// Mock dei componenti che utilizzano Chart.js
 jest.mock('chart.js');
 jest.mock('react-chartjs-2', () => ({
   Line: () => <div data-testid="mock-line-chart">Grafico a linee</div>,
   Bar: () => <div data-testid="mock-bar-chart">Grafico a barre</div>
 }));
 
-// Mock dei componenti Material-UI DatePicker
 jest.mock('@mui/x-date-pickers/AdapterDateFns', () => ({
   AdapterDateFns: function MockAdapter() {
     return {};

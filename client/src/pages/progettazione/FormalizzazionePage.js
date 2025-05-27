@@ -1,4 +1,4 @@
-// START OF FILE client/src/pages/progettazione/FormalizzazionePage.js (RIFATTORIZZATO per Generazione AI)
+
 
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
@@ -9,31 +9,29 @@ import {
     Select, MenuItem, CircularProgress, Tooltip, Stack, TextareaAutosize,    // --- AGGIUNGI QUESTI ---
     Divider,
     ListSubheader,
-    // Per nuova UI Struttura
+
     Accordion,
     AccordionSummary,
     AccordionDetails,
     List,
     ListItem,
     ListItemText
-    // --------------------- // Aggiunto Stack e TextareaAutosize
+
 } from '@mui/material';
-// Icons
+
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'; // Per generare bozza
 import FilterListIcon from '@mui/icons-material/FilterList'; // Per filtri futuri
 import CloseIcon from '@mui/icons-material/Close'; // Per chiudere dialoghi
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'; // Per copiare bozza
 import SaveIcon from '@mui/icons-material/Save'; // <-- AGGIUNGI ICONA SALVA
-// --- AGGIUNGI QUESTE ICONE ---
+
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SubjectIcon from '@mui/icons-material/Subject'; // Per area tematica
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest'; // Per analizza contesto
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Per Accordion
-// ---------------------------
 
-// --- Funzioni Utility (CORRETTE) ---
 const getPriorityColor = (priority) => {
     if (priority === 'alta') return 'error';
     if (priority === 'media') return 'warning';
@@ -55,7 +53,7 @@ const getStatusColor = (status) => {
         annullato: 'error',
         suggerito: 'default',
         in_attesa: 'default',
-        // Aggiungere altri stati se necessario
+
     };
     return statusMap[status] || 'default';
 };
@@ -75,9 +73,7 @@ const getAreaLabel = (area) => {
     };
     return areaMap[area] || area || 'Altro'; // Restituisce il codice se non mappato o 'Altro'
 };
-// --- Fine Funzioni Utility ---
 
-// --- NUOVO: Componente Modal per Selezione Tipo Documento e Parametri ---
 const GenerateDocModal = ({ 
     open, 
     onClose, 
@@ -89,12 +85,12 @@ const GenerateDocModal = ({
     onTipoDocumentoChange // Callback per aggiornare tipo documento per struttura
 }) => {
     const [tipoDocumento, setTipoDocumento] = useState('');
-    // Stato per parametri specifici (esempio)
+
     const [paramTitolo, setParamTitolo] = useState('');
     const [paramRuolo, setParamRuolo] = useState('');
 
     useEffect(() => {
-        // Reset quando si apre per un nuovo intervento
+
         if (open) {
             setTipoDocumento(''); // Per la generazione completa
             onTipoDocumentoChange(''); // Resetta anche per la struttura
@@ -123,7 +119,7 @@ const GenerateDocModal = ({
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>Azioni Documento AI per: {intervento.titolo}</DialogTitle>
             <DialogContent dividers>
-                {/* <Typography gutterBottom>Intervento: <strong>{intervento.titolo}</strong></Typography> */}
+                {}
                 <FormControl fullWidth required margin="normal" size="small">
                     <InputLabel id="tipo-doc-label">Tipo Documento (per entrambe le azioni)</InputLabel>
                     <Select
@@ -147,7 +143,7 @@ const GenerateDocModal = ({
                     </Select>
                 </FormControl>
 
-                {/* Campi Parametri Condizionali (per generazione bozza completa) */}
+                {}
                 {tipoDocumentoPerStruttura === 'procedura' && (
                     <TextField
                         label="Titolo Specifico Procedura (Opzionale per Bozza Completa)"
@@ -193,22 +189,19 @@ const GenerateDocModal = ({
         </Dialog>
     );
 };
-// --- FINE Modal Generazione ---
 
-// --- NUOVO: Componente Modal per Visualizzare/Copiare/Salvare Bozza ---
 const ViewDraftModal = ({
     open,
     onClose,
     draftMarkdown,
     titolo,
-    // NUOVE PROPS PER SALVATAGGIO
+
     onSaveDraft, // Funzione per salvare la bozza
     isSavingDraft // Stato di caricamento per salvataggio
  }) => {
 
-    const handleCopyToClipboard = () => { /* ... (invariato) ... */ };
+    const handleCopyToClipboard = () => {  };
 
-    // NUOVO: Handler per il salvataggio
     const handleSaveClick = () => {
         if (onSaveDraft) {
             onSaveDraft(); // Chiama la funzione passata dalle props
@@ -222,7 +215,7 @@ const ViewDraftModal = ({
                 <IconButton edge="end" color="inherit" onClick={onClose} aria-label="close"><CloseIcon /></IconButton>
             </DialogTitle>
             <DialogContent dividers>
-                {/* Usiamo Textarea per mostrare il Markdown come testo semplice, facilmente copiabile */}
+                {}
                 <TextareaAutosize
                     minRows={15}
                     maxRows={30}
@@ -230,10 +223,7 @@ const ViewDraftModal = ({
                     readOnly
                     style={{ width: '100%', fontFamily: 'monospace', fontSize: '0.9rem', whiteSpace: 'pre-wrap', border: '1px solid #ccc', padding: '8px', boxSizing: 'border-box' }}
                 />
-                 {/* Alternativa con react-markdown (richiede installazione: npm install react-markdown)
-                 import ReactMarkdown from 'react-markdown';
-                 <ReactMarkdown>{draftMarkdown}</ReactMarkdown>
-                 */}
+                 {}
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'space-between', px: 3, pb: 2 }}>
                 <Button onClick={handleCopyToClipboard} startIcon={<ContentCopyIcon />} disabled={!draftMarkdown || isSavingDraft}>Copia Testo</Button>
@@ -253,24 +243,19 @@ const ViewDraftModal = ({
         </Dialog>
     );
 };
-// --- FINE Modal Visualizzazione ---
 
-
-// --- Componente Principale FormalizzazionePage (RIFATTORIZZATO) ---
 const FormalizzazionePage = () => {
-    // Stati per Interventi
+
     const [interventi, setInterventi] = useState([]);
     const [loadingInterventi, setLoadingInterventi] = useState(false);
     const [errorInterventi, setErrorInterventi] = useState(null);
     const [filters, setFilters] = useState({ area: '', stato: '' }); // Filtri per interventi
 
-    // Stati per Generazione AI
     const [showGenerateModal, setShowGenerateModal] = useState(false);
     const [interventoToFormalize, setInterventoToFormalize] = useState(null);
     const [generatingDraft, setGeneratingDraft] = useState(false);
     const [generationError, setGenerationError] = useState(null);
 
-    // Stati per Visualizzazione Bozza
     const [showDraftModal, setShowDraftModal] = useState(false);
     const [generatedDraft, setGeneratedDraft] = useState('');
     const [generatedDocTitle, setGeneratedDocTitle] = useState('');
@@ -280,33 +265,26 @@ const FormalizzazionePage = () => {
 
     const [tipoDocumentoSelezionato, setTipoDocumentoSelezionato] = useState('');
 
-    // --- NUOVI STATI PER FILTRO CHECKLIST INTERVENTI ---
     const [checklists, setChecklists] = useState([]);
     const [loadingChecklists, setLoadingChecklists] = useState(false);
     const [errorChecklists, setErrorChecklists] = useState(null);
     const [selectedChecklistIdFilter, setSelectedChecklistIdFilter] = useState('');
 
-    // --- NUOVO STATO PER MESSAGGI ---
     const [generationMessage, setGenerationMessage] = useState({ type: '', text: '', planId: null });
 
-    // --- NUOVI STATI PER ELENCO DOCUMENTI ---
     const [documenti, setDocumenti] = useState([]);
     const [loadingDocumenti, setLoadingDocumenti] = useState(false);
     const [errorDocumenti, setErrorDocumenti] = useState(null);
 
-    // --- STATI PER IL MODAL DETTAGLIO DOCUMENTO ---
     const [showDocumentDetailModal, setShowDocumentDetailModal] = useState(false);
     const [selectedDocumentDetail, setSelectedDocumentDetail] = useState(null);
     const [loadingDetail, setLoadingDetail] = useState(false);
 
-    // --- STATI PER DIALOG ELIMINAZIONE DOCUMENTO ---
     const [openDeleteDocDialog, setOpenDeleteDocDialog] = useState(false);
     const [docToDelete, setDocToDelete] = useState(null);
 
-    // --- NUOVO STATO PER DOCUMENTI FILTRATI ---
     const [filteredDocumenti, setFilteredDocumenti] = useState([]);
 
-    // NUOVI STATI PER ANALISI CONTESTO E WORKSPACE DEFINIZIONE ASSETTO
     const [showAssetDefinitionWorkspace, setShowAssetDefinitionWorkspace] = useState(false);
     const [assetContext, setAssetContext] = useState({ intervento: null, areaTematica: '', tipoDocumento: '' });
     const [proposedStructure, setProposedStructure] = useState([]);
@@ -315,7 +293,6 @@ const FormalizzazionePage = () => {
     const [analysisError, setAnalysisError] = useState(null);
     const [isDeletingDocument, setIsDeletingDocument] = useState(false);
 
-    // NUOVA FUNZIONE PER ANALIZZARE IL CONTESTO PER LA STRUTTURA DEL DOCUMENTO
     const handleAnalyzeContextForStructure = async () => {
         setAnalyzingContext(true);
         setAnalysisError(null);
@@ -359,78 +336,67 @@ const FormalizzazionePage = () => {
             console.error(">>> Errore durante l'analisi del contesto per la struttura:", err);
             const errMsg = err.response?.data?.message || err.message || "Errore sconosciuto durante l'analisi della struttura.";
             setAnalysisError(errMsg);
-            // Mantieni il modal aperto per mostrare l'errore, non aprire il workspace
+
             setShowAssetDefinitionWorkspace(false); 
         } finally {
             setAnalyzingContext(false);
         }
     };
 
-    // Fetch Iniziale Interventi e Checklist
     const fetchInterventi = useCallback(async () => {
         setLoadingInterventi(true); setErrorInterventi(null); setGenerationError(null);
         try {
-            // Filtra per stati che tipicamente richiedono formalizzazione
+
             const defaultStates = ['approvato', 'pianificato', 'in_corso', 'completato'];
-            //ßif (!showSuccess) setGenerationMessage({ type: '', text: '', planId: null }); // Resetta messaggio successo/errore generale
+
             setInterventi([]); // Svuota sempre prima del fetch
-        
-            // *** MODIFICA: Non fare fetch se nessun filtro checklist è attivo ***
+
             if (selectedChecklistIdFilter === '') {
                 console.log(">>> Fetch interventi saltata: nessuna origine checklist selezionata per formalizzazione.");
                 setLoadingInterventi(false);
                 return;
             }
-            // ******************************************************************
-    // --- MODIFICA COSTRUZIONE PARAMS ---
+
     const params = {
         checklist_id: selectedChecklistIdFilter // Filtro origine è sempre obbligatorio (se non '')
     };
 
-    // Aggiungi gli altri filtri SOLO se hanno un valore selezionato (diverso da stringa vuota)
     if (filters.area) {
         params.area = filters.area;
     }
     if (filters.stato) {
-        // Gestisci il caso "Stati Rilevanti" se necessario
+
         if (filters.stato === 'approvato,pianificato,in_corso,completato') {
-             // Se l'API supporta stati multipli separati da virgola
+
              params.stato = filters.stato;
-             // Altrimenti, se l'API si aspetta un array o devi gestirlo diversamente
-             // params.stato = filters.stato.split(',');
+
         } else if (filters.stato !== 'tutti') { // Ignora 'tutti'
              params.stato = filters.stato; 
         }
-        // Se filters.stato è '' o 'tutti', non viene aggiunto ai params
+
     }
-    // --- FINE MODIFICA ---
 
             console.log("Fetching interventi per formalizzazione con params:", params);
-            // Chiedi tutti i campi necessari per il servizio AI e la tabella
+
             const response = await axios.get('http://localhost:5001/api/interventions', { params });
             setInterventi(response.data.data || []);
         } catch (err) {
             setErrorInterventi(err.response?.data?.message || 'Errore recupero interventi.');
             setInterventi([]);
         } finally { setLoadingInterventi(false); }
-// Modifica dipendenza: ora dipende dal nuovo filtro checklist invece che da 'filters' direttamente
-// (assumendo che anche i filtri area/stato debbano dipendere dalla selezione della checklist)
+
 }, [selectedChecklistIdFilter, filters.area, filters.stato]); // Dipende dai filtri attivi
 
-
-// Dentro FormalizzazionePage
-
 useEffect(() => {
-    // Questo effetto ora reagisce ai cambiamenti dei filtri interni a fetchInterventi
+
     console.log(">>> FormalizzazionePage: useEffect[fetchInterventi] triggerato.");
     fetchInterventi();
 }, [fetchInterventi]); // Dipendenza corretta
-    // Handlers Filtri Interventi
+
     const handleFilterChange = (e) => {
         setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    // Handlers Modals Generazione/Visualizzazione
     const handleOpenGenerateModal = (intervento) => {
         setInterventoToFormalize(intervento);
         setGenerationError(null); // Pulisci errore precedente
@@ -439,48 +405,45 @@ useEffect(() => {
     const handleCloseGenerateModal = () => { setShowGenerateModal(false); setInterventoToFormalize(null);  setTipoDocumentoSelezionato(''); };
     const handleCloseDraftModal = () => { setShowDraftModal(false); setGeneratedDraft(''); setGeneratedDocTitle(''); setTipoDocumentoSelezionato(''); };
 
-    // Handler Chiamata API Generazione Bozza
     const handleGenerateDraft = async (interventoId, tipoDocumento, parametriUtente) => {
         setGeneratingDraft(true); setGenerationError(null);
         setTipoDocumentoSelezionato(tipoDocumento); // <-- SALVA IL TIPO QUI
 
-            // *** MODIFICA QUESTA RIGA ***
     const url = 'http://localhost:5001/api/formalization/generate-ai'; // <--- URL ASSOLUTO CORRETTO
-    // ***************************
+
         try {
 
             console.log(`Chiamata POST a ${url} con dati:`, { interventoId, tipoDocumento, parametriUtente }); // Aggiungi log
             const response = await axios.post(url, { interventoId, tipoDocumento, parametriUtente });
-            // ***************************
+
             setGeneratedDraft(response.data.data?.bozzaMarkdown || '');
-            // Costruisci un titolo per il modal di visualizzazione
+
             setGeneratedDocTitle(`${tipoDocumento.charAt(0).toUpperCase() + tipoDocumento.slice(1)} - ${interventoToFormalize?.titolo}`);
             setShowGenerateModal(false); // Chiudi modal generazione
             setShowDraftModal(true); // Apri modal visualizzazione
         } catch (err) {
-            // *** AGGIUNGI LOG ERRORE SPECIFICO ***
+
             console.error(`Errore chiamata ${url}:`, err);
              if (err.response) {
-                 // Il server ha risposto con uno stato diverso da 2xx
+
                  console.error("Errore - Dati:", err.response.data);
                  console.error("Errore - Stato:", err.response.status);
                  console.error("Errore - Headers:", err.response.headers);
                  setGenerationError(`Errore dal server (${err.response.status}): ${err.response.data?.message || 'Errore sconosciuto'}`);
              } else if (err.request) {
-                 // La richiesta è stata fatta ma non è stata ricevuta risposta
+
                  console.error("Errore - Nessuna risposta:", err.request);
                  setGenerationError('Nessuna risposta ricevuta dal server. Verifica la connessione o che il server sia attivo.');
              } else {
-                 // Qualcosa è andato storto nell'impostare la richiesta
+
                  console.error('Errore generico Axios:', err.message);
                  setGenerationError(`Errore nell'invio della richiesta: ${err.message}`);
              }
-            // ****************************************
+
             setTipoDocumentoSelezionato(''); // Resetta se fallisce
 
         } finally { setGeneratingDraft(false); }
     };
-
 
     const fetchDocumenti = useCallback(async () => {
         setLoadingDocumenti(true);
@@ -488,7 +451,7 @@ useEffect(() => {
         setDocumenti([]); // Svuota prima
         try {
             console.log(">>> FormalizzazionePage: Fetching documenti formalizzati...");
-            // Chiamiamo la GET /api/formalization che NON include il contenuto
+
             const response = await axios.get('http://localhost:5001/api/formalization');
             console.log(">>> FormalizzazionePage: Documenti ricevuti:", response.data.data?.length || 0);
             setDocumenti(response.data.data || []);
@@ -500,13 +463,11 @@ useEffect(() => {
             setLoadingDocumenti(false);
         }
     }, []); // Dipende solo da sé stessa, chiamata al mount e dopo salvataggio
-    
-    // Chiama fetchDocumenti al mount iniziale
+
     useEffect(() => {
         fetchDocumenti();
     }, [fetchDocumenti]);
 
-     // NUOVA FUNZIONE per gestire il salvataggio della bozza
  const handleSaveDraft = async () => {
     setSavingDraft(true);
     setSaveDraftError(null); // Pulisci errore precedente
@@ -518,7 +479,6 @@ useEffect(() => {
         return;
     }
 
-    // Prepara il payload per l'API /from-ai
     const payload = {
         titolo: generatedDocTitle || `Bozza AI - ${interventoToFormalize.titolo}`, // Usa titolo generato o creane uno
         tipo: tipoDocumentoSelezionato, // Devi avere il tipo selezionato da qualche parte
@@ -533,23 +493,18 @@ useEffect(() => {
         const response = await axios.post('http://localhost:5001/api/formalization/from-ai', payload);
         console.log(">>> Risposta salvataggio bozza:", response.data);
 
-        // Imposta messaggio di successo GLOBALE (o uno specifico per il salvataggio)
         setGenerationMessage({ type: 'success', text: 'Bozza AI salvata con successo nel sistema!' });
 
-        // Chiudi i modal
         handleCloseDraftModal();
         handleCloseGenerateModal(); // Assicurati che anche questo si chiuda
         fetchDocumenti(); // <-- RICARICA LA LISTA QUI
      } catch (err) {
-        // ... (gestione errore) ...
+
      } finally {
          setSavingDraft(false);
      }
  };
 
-
-
-// --- HANDLER DIALOG ELIMINAZIONE DOCUMENTO ---
 const handleOpenDeleteDocDialog = (documento) => {
     setDocToDelete(documento);
     setOpenDeleteDocDialog(true);
@@ -579,10 +534,6 @@ const handleDeleteDocumento = async (docId) => {
         setIsDeletingDocument(false);
     }
 };
-// --- FINE HANDLER ELIMINAZIONE DOCUMENTO ---
-
-
- // Dentro FormalizzazionePage
 
 const handleOpenDocumentDetailModal = async (docId) => {
     if (!docId) return;
@@ -610,7 +561,6 @@ const handleCloseDocumentDetailModal = () => {
     setSelectedDocumentDetail(null);
 };
 
-// Esempio (potrebbe essere un componente separato o dentro FormalizzazionePage)
 const DocumentDetailModal = ({ open, onClose, documento, isLoading }) => {
     if (!open) return null;
 
@@ -638,7 +588,7 @@ const DocumentDetailModal = ({ open, onClose, documento, isLoading }) => {
 
                         <Grid item xs={12}><Divider sx={{ my: 1 }} /></Grid>
 
-                        {/* Visualizzazione Condizionale: Markdown o Info File */}
+                        {}
                         {documento.contenutoMarkdown ? (
                             <Grid item xs={12}>
                                 <Typography variant="subtitle2" gutterBottom>Contenuto Bozza AI (Markdown):</Typography>
@@ -678,14 +628,12 @@ const DocumentDetailModal = ({ open, onClose, documento, isLoading }) => {
     );
 };
 
-// Helper per mostrare il nome del filtro attivo
 const getFilterOriginLabel = () => {
     if (selectedChecklistIdFilter === 'manuali') return 'Manuali';
     if (selectedChecklistIdFilter === 'tutti_ai') return 'Tutti AI';
     const foundChecklist = checklists.find(c => c._id === selectedChecklistIdFilter);
     return foundChecklist ? `${foundChecklist.nome} (${foundChecklist.cliente?.nome ?? 'N/D'})` : 'Sconosciuta';
 };
-    
 
     return (
         <Box>
@@ -697,10 +645,10 @@ const getFilterOriginLabel = () => {
                 </Typography>
             </Paper>
 
-            {/* Filtri per Interventi */}
+            {}
             <Paper sx={{ p: 2, mb: 3 }}>
                 <Grid container spacing={2} alignItems="center">
-                    {/* --- NUOVO: Select Checklist Origine --- */}
+                    {}
         <Grid item xs={12} sm={6} md={4}>
             <FormControl fullWidth size="small" disabled={loadingChecklists || loadingInterventi}>
                 <InputLabel id="checklist-filter-formalizzazione-label">Filtra Interventi per Origine</InputLabel>
@@ -710,7 +658,7 @@ const getFilterOriginLabel = () => {
                     label="Filtra Interventi per Origine"
                     onChange={(e) => {
                         setSelectedChecklistIdFilter(e.target.value);
-                        // Resetta errori/messaggi quando cambio filtro
+
                         setErrorInterventi(null);
                         setGenerationMessage({ type: '', text: '', planId: null });
                     }}
@@ -732,7 +680,7 @@ const getFilterOriginLabel = () => {
             {errorChecklists && <Alert severity="error" sx={{mt:1, fontSize: '0.8rem'}}>{errorChecklists}</Alert>}
         </Grid>
 
-        {/* Filtri Esistenti (Area, Stato) - Ora potrebbero dipendere dalla selezione sopra */}
+        {}
         <Grid item xs={12} sm={6} md={3}>
         <FormControl fullWidth size="small" disabled={loadingInterventi || !selectedChecklistIdFilter}>
                              <InputLabel id="area-filter-label">Filtra Area Intervento</InputLabel>
@@ -781,7 +729,7 @@ const getFilterOriginLabel = () => {
 
              {errorInterventi && <Alert severity="error" sx={{ mb: 2 }}>{errorInterventi}</Alert>}
 
-            {/* Tabella Interventi */}
+            {}
             <Paper sx={{ p: 0, mb: 4 }}>
                  {loadingInterventi ? ( <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}><CircularProgress /></Box> ) : (
                     <TableContainer>
@@ -823,7 +771,7 @@ const getFilterOriginLabel = () => {
                  )}
             </Paper>
 
-{/* --- NUOVA SEZIONE: Elenco Documenti Formalizzati --- */}
+{}
 <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
     Documenti di Formalizzazione Esistenti {selectedChecklistIdFilter && `(Origine: ${getFilterOriginLabel()})`}
 </Typography>
@@ -901,9 +849,7 @@ const getFilterOriginLabel = () => {
                     )}
                 </Paper>
 
-                
-
-            {/* Modal per selezionare tipo documento */}
+            {}
             <GenerateDocModal
                 open={showGenerateModal}
                 onClose={handleCloseGenerateModal}
@@ -914,21 +860,20 @@ const getFilterOriginLabel = () => {
                 tipoDocumentoPerStruttura={assetContext.tipoDocumento}
                 onTipoDocumentoChange={(val) => setAssetContext(prev => ({...prev, tipoDocumento: val}))}
             />
-             {/* Mostra errore di analisi *dentro* il modal se è ancora aperto */}
+             {}
              {analysisError && showGenerateModal && (
                 <Alert severity="error" sx={{ position: 'absolute', bottom: 70, left: 24, right: 24, zIndex: 1301 }}>
                     {analysisError}
                 </Alert>
             )}
-            {/* Mostra errore di generazione bozza *dentro* il modal se è ancora aperto */}
+            {}
              {generationError && showGenerateModal && (
                 <Alert severity="error" sx={{ position: 'absolute', bottom: 70, left: 24, right: 24, zIndex: 1301 }}>
                     {generationError}
                 </Alert>
             )}
 
-
-            {/* MODAL VISUALIZZAZIONE BOZZA (MANTIENI) */}
+            {}
             <ViewDraftModal
                 open={showDraftModal}
                 onClose={handleCloseDraftModal}
@@ -937,14 +882,14 @@ const getFilterOriginLabel = () => {
                 onSaveDraft={handleSaveDraft}
                 isSavingDraft={savingDraft}
             />
-            {/* Mostra errore salvataggio bozza *dentro* il modal ViewDraftModal se aperto */}
+            {}
             {saveDraftError && showDraftModal && (
                 <Alert severity="error" sx={{ position: 'absolute', bottom: 70, left: 24, right: 24, zIndex: 1301 }}>
                     {saveDraftError}
                 </Alert>
             )}
 
-            {/* MODAL DETTAGLIO DOCUMENTO ESISTENTE (MANTIENI) */}
+            {}
             <DocumentDetailModal
                 open={showDocumentDetailModal}
                 onClose={handleCloseDocumentDetailModal}
@@ -952,7 +897,7 @@ const getFilterOriginLabel = () => {
                 isLoading={loadingDetail}
             />
 
-            {/* DIALOG CONFERMA CANCELLAZIONE (MANTIENI) */}
+            {}
             <Dialog open={openDeleteDocDialog} onClose={handleCloseDeleteDocDialog}>
                 <DialogTitle>Conferma Eliminazione</DialogTitle>
                 <DialogContent>
@@ -970,7 +915,7 @@ const getFilterOriginLabel = () => {
                 </DialogActions>
             </Dialog>
 
-            {/* NUOVA SEZIONE: Workspace per la definizione dell'assetto */}
+            {}
             {showAssetDefinitionWorkspace && (
                 <Paper elevation={3} sx={{ p: {xs: 1, sm: 2, md: 3}, mt: 3, border: theme => `1px solid ${theme.palette.primary.main}`, borderRadius: 2 }}>
                     <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2}}>
@@ -1054,5 +999,3 @@ const getFilterOriginLabel = () => {
 };
 
 export default FormalizzazionePage;
-
-// END OF FILE client/src/pages/progettazione/FormalizzazionePage.js (RIFATTORIZZATO per Generazione AI)

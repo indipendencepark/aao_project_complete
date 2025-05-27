@@ -1,4 +1,4 @@
-// START OF FILE client/src/pages/diagnosi/ReportPage.js (AGGIORNATO v7 - Genera Interventi)
+
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -10,7 +10,6 @@ import {
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom'; // Aggiunto useNavigate
 
-// Icons
 import DescriptionIcon from '@mui/icons-material/Description';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -20,12 +19,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LaunchIcon from '@mui/icons-material/Launch';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
-// *** MODIFICA ICONA E AGGIUNGI PlaylistAddCheckIcon ***
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'; // Icona per generazione interventi
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck'; // Nuova icona per il bottone
 
-
-// Funzioni Helper (definite qui o importate)
 const getGiudizioColor = (giudizio) => {
     switch (giudizio?.toUpperCase()) {
         case 'INADEGUATO': return 'error';
@@ -62,9 +58,8 @@ const getAreaLabel = (areaCode) => {
      }
 };
 
-
 const ReportPage = () => {
-    // Stati
+
     const [checklists, setChecklists] = useState([]);
     const [selectedChecklistId, setSelectedChecklistId] = useState('');
     const [reportData, setReportData] = useState(null);
@@ -74,16 +69,14 @@ const ReportPage = () => {
     const [errorReport, setErrorReport] = useState(null);
     const [exportingPdf, setExportingPdf] = useState(false);
     const [generatingInterventions, setGeneratingInterventions] = useState(false);
-    // *** Stato rinominato per chiarezza ***
+
     const [generatingPlan, setGeneratingPlan] = useState(false);
-    // Stato messaggio modificato per contenere anche l'ID del piano generato
+
     const [generationMessage, setGenerationMessage] = useState({ type: '', text: '', planId: null });
     const [statusMessage, setStatusMessage] = useState({ type: '', text: '', planId: null }); // planId usato solo per Crea Piano
 
-
     const navigate = useNavigate();
 
-    // Carica elenco checklist
     useEffect(() => {
         const fetchChecklistList = async () => {
             setLoadingChecklists(true); setErrorChecklists(null);
@@ -98,7 +91,6 @@ const ReportPage = () => {
         fetchChecklistList();
     }, []);
 
-    // Carica dati report quando cambia la checklist selezionata
     useEffect(() => {
         setGenerationMessage({ type: '', text: '' }); // Reset messaggi generazione
         const fetchReportData = async () => {
@@ -126,7 +118,6 @@ const ReportPage = () => {
         fetchReportData();
     }, [selectedChecklistId]);
 
-    // --- Funzione Export PDF (Lato Server - Base64 + Link) ---
     const handleExportPDF = async () => {
         if (!selectedChecklistId || !reportData) {
             console.warn("Tentativo di export PDF senza checklist selezionata o dati.");
@@ -165,7 +156,6 @@ const ReportPage = () => {
 
             if (fileBlob.size === 0) { throw new Error("File PDF ricostruito vuoto."); }
 
-            // Debug FileReader (opzionale ma può rimanere)
             const reader = new FileReader();
             let readError = false;
             const readPromise = new Promise((resolve, reject) => {
@@ -177,7 +167,6 @@ const ReportPage = () => {
             if (readError) throw new Error("FileReader fallito.");
             console.log("FileReader: Verifica OK.");
 
-            // Metodo Link <a>
             fileURL = URL.createObjectURL(fileBlob);
             console.log("URL Oggetto:", fileURL);
             const link = document.createElement('a');
@@ -188,7 +177,6 @@ const ReportPage = () => {
             link.click();
             console.log("Click simulato.");
              if (link.parentNode) { link.parentNode.removeChild(link); } // Rimuovi link
-             // La revoca avviene nel finally
 
         } catch (error) {
             console.error("Errore Export PDF (Base64):", error);
@@ -201,9 +189,7 @@ const ReportPage = () => {
             console.log("Export PDF terminato (client).");
         }
     };
-    // --- Fine Funzione Export PDF ---
 
-     // --- Funzione Genera/Aggiorna SOLO Interventi ---
      const handleGenerateInterventionsOnly = async () => {
         if (!selectedChecklistId) return;
         setGeneratingInterventions(true);
@@ -229,10 +215,7 @@ const ReportPage = () => {
             setGeneratingInterventions(false);
         }
     };
-    // --- Fine Funzione Genera Interventi ---
 
-     // *** AGGIUNGI QUESTA FUNZIONE QUI ***
-    // --- Funzione Crea Piano da Interventi ESISTENTI (chiama la stessa route di prima) ---
     const handleCreatePlanFromAI = async () => {
         if (!selectedChecklistId) return;
         setGeneratingPlan(true);
@@ -265,10 +248,7 @@ const ReportPage = () => {
             setGeneratingPlan(false);
         }
     };
-    // --- Fine Funzione Crea Piano ---
-    // ***********************************
 
-  // --- Funzione RINOMINATA e MODIFICATA per Generare il Piano AI ---
   const handleGenerateActionPlanAI = async () => {
     if (!selectedChecklistId) return;
 
@@ -278,7 +258,7 @@ const ReportPage = () => {
 
     try {
         console.log(`>>> ReportPage: Richiesta generazione PIANO AI per ${selectedChecklistId}`);
-        // Chiama la NUOVA route del backend
+
         const response = await axios.post(
             'http://localhost:5001/api/action-plan/generate-ai',
             { checklistId: selectedChecklistId }
@@ -288,22 +268,12 @@ const ReportPage = () => {
         const newPlan = response.data.data; // Il piano restituito dal backend
         const message = response.data.message || 'Piano d\'azione generato con successo.';
 
-        // Imposta messaggio di successo E l'ID del piano
         setGenerationMessage({
             type: 'success',
             text: `${message} (ID: ${newPlan?._id})`,
             planId: newPlan?._id || null // Salva l'ID
         });
 
-        // --- REINDIRIZZAMENTO (Opzionale, ma consigliato) ---
-        // Dopo un breve ritardo per mostrare il messaggio, reindirizza al dettaglio del piano
-        // if (newPlan?._id) {
-        //     setTimeout(() => {
-        //         navigate(`/progettazione/piano-azione?view=${newPlan._id}`);
-        //     }, 2500); // Ritardo di 2.5 secondi
-        // }
-        // ------------------------------------------------------
-            // Reindirizza dopo un breve ritardo
             if (newPlan?._id) {
                 setTimeout(() => {
                     navigate(`/progettazione/piano-azione?view=${newPlan._id}`);
@@ -318,13 +288,12 @@ const ReportPage = () => {
         setGeneratingPlan(false); // Usa nuovo stato
     }
 };
-// --- Fine Funzione Genera Piano AI ---
 
     return (
         <Box>
             <Typography variant="h5" gutterBottom>Report Diagnostico</Typography>
 
-            {/* Selezione Checklist */}
+            {}
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom>Seleziona Checklist</Typography>
                 <FormControl fullWidth sx={{ mt: 1 }} disabled={loadingChecklists || loadingReport || generatingInterventions}>
@@ -346,17 +315,17 @@ const ReportPage = () => {
                 {errorChecklists && <Alert severity="error" sx={{mt:1}}>{errorChecklists}</Alert>}
             </Paper>
 
-            {/* Visualizzazione Stato Caricamento/Errore Report */}
+            {}
             {selectedChecklistId && loadingReport && ( <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}><CircularProgress /></Box> )}
-            {/* Mostra errore report O messaggio generazione (non entrambi) */}
+            {}
             {selectedChecklistId && errorReport && !generatingInterventions && ( <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorReport(null)}>{errorReport}</Alert> )}
             {!selectedChecklistId && !loadingChecklists && ( <Alert severity="info" sx={{ mb: 2 }}>Seleziona una checklist.</Alert> )}
 
-            {/* ---- INIZIO CONTENUTO REPORT ---- */}
+            {}
             {reportData && !loadingReport && selectedChecklistId && (
                 <Box>
                     <Paper sx={{ p: 3 }}>
-                        {/* Intestazione Report */}
+                        {}
                         <Box>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                                 <Box>
@@ -373,20 +342,20 @@ const ReportPage = () => {
                             <Divider sx={{ mb: 3 }} />
                         </Box>
 
-                         {/* Messaggio Generazione Piano */}
+                         {}
                          {generationMessage.text && (
                             <Alert
                                 severity={generationMessage.type || 'info'}
                                 sx={{ mb: 2 }}
                                 onClose={generationMessage.type !== 'success' ? () => setGenerationMessage({ type:'', text: '', planId: null }) : undefined} // Chiudibile solo se errore
                                 action={
-                                    // Mostra il bottone solo se successo e c'è un ID
+
                                     generationMessage.type === 'success' && generationMessage.planId ? (
                                         <Button
                                             color="inherit"
                                             size="small"
                                             component={RouterLink}
-                                            // Reindirizza al dettaglio del piano specifico
+
                                             to={`/progettazione/piano-azione?view=${generationMessage.planId}`}
                                         >
                                             Vedi Piano
@@ -398,19 +367,9 @@ const ReportPage = () => {
                             </Alert>
                          )}
 
-                         {/* Messaggio Generazione Interventi
-                         {generationMessage.text && (
-                            <Alert severity={generationMessage.type || 'info'} sx={{ mb: 2 }} onClose={() => setGenerationMessage({ type:'', text: '' })}>
-                                {generationMessage.text}
-                                {generationMessage.type === 'success' && (
-                                    <Button size="small" component={RouterLink} to="/progettazione/interventi" sx={{ ml: 2 }}>
-                                        Vai a Interventi
-                                    </Button>
-                                )}
-                            </Alert>
-                         )} */}
+                         {}
 
-                         {/* Messaggio di Stato Unificato */}
+                         {}
                         {statusMessage.text && (
                             <Alert
                                 severity={statusMessage.type || 'info'}
@@ -418,7 +377,7 @@ const ReportPage = () => {
                                 onClose={statusMessage.type !== 'success' ? () => setStatusMessage({ type:'', text: '', planId: null }) : undefined}
                                 action={
                                     statusMessage.type === 'success' && statusMessage.planId ? (
-                                        <Button /* Bottone Vedi Piano */ >...</Button>
+                                        <Button  >...</Button>
                                     ) : statusMessage.type === 'success' && !statusMessage.planId ? ( // Successo generazione interventi
                                         <Button color="inherit" size="small" component={RouterLink} to="/progettazione/interventi">Vedi Interventi</Button>
                                      ) : null
@@ -428,18 +387,17 @@ const ReportPage = () => {
                             </Alert>
                          )}
 
-
-                        {/* Executive Summary */}
+                        {}
                         <Box>
                             <Typography variant="h6" gutterBottom>Executive Summary</Typography>
-                            <Card variant="outlined" sx={{ mb: 3, p: 2, bgcolor: '#f9f9f9' /* Leggermente diverso per distinguerlo dal PDF se vuoi */ }}>
+                            <Card variant="outlined" sx={{ mb: 3, p: 2, bgcolor: '#f9f9f9'  }}>
                                 {reportData.sintesi_esecutiva ? (
-                                    // Visualizza il testo dell'AI se presente
+
                                     <Typography variant="body2" paragraph sx={{ whiteSpace: 'pre-wrap' }}>
                                         {reportData.sintesi_esecutiva}
                                     </Typography>
                                 ) : (
-                                    // Fallback se la sintesi AI non è disponibile (o se vuoi mostrare comunque i dati base)
+
                                     <>
                                         <Typography variant="subtitle1" gutterBottom>
                                             Giudizio Generale Adeguatezza (Base): 
@@ -450,7 +408,7 @@ const ReportPage = () => {
                                                 sx={{ ml: 1 }}
                                             />
                                         </Typography>
-                                        <Grid container spacing={2} sx={{ mt: 0.5 }}> {/* Ridotto mt */}
+                                        <Grid container spacing={2} sx={{ mt: 0.5 }}> {}
                                             <Grid item xs={12} md={6}>
                                                 <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', color: 'success.dark' }}>
                                                     Principali Aree di Forza (Base):
@@ -487,30 +445,30 @@ const ReportPage = () => {
                             </Card>
                         </Box>
 
-                        {/* Analisi per Area */}
+                        {}
                         <Box>
                             <Typography variant="h6" gutterBottom>Analisi per Area</Typography>
                             <Grid container spacing={2} sx={{ mb: 3 }}>
                                {reportData.analisiArea && Object.entries(reportData.analisiArea).map(([areaCode, giudizio]) => (
                                   <Grid item xs={12} sm={6} md={3} key={areaCode}>
-                                      {/* ... Card Area ... */}
+                                      {}
                                   </Grid>
                                ))}
                             </Grid>
                         </Box>
 
-                        {/* --- Sezione Bottoni Azioni AI --- */}
+                        {}
                         <Box sx={{ my: 3, p: 2, border: '1px dashed grey', borderRadius: 1 }}>
                             <Typography variant="subtitle1" gutterBottom sx={{ textAlign: 'center', mb: 2 }}>Azioni AI Basate sui Gap</Typography>
                             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
                                 <Tooltip title="Analizza i gap (Alto/Medio) e crea/aggiorna la lista degli interventi suggeriti nel Modulo Progettazione, senza creare un piano d'azione.">
-                                    <span> {/* Wrapper per Tooltip su bottone disabilitato */}
+                                    <span> {}
                                         <Button
                                             variant="outlined"
                                             color="secondary"
                                             startIcon={generatingInterventions ? <CircularProgress size={20} color="inherit"/> : <AutoFixHighIcon />}
                                             onClick={handleGenerateInterventionsOnly}
-                                            // Disabilita se non ci sono gap o se una delle due azioni è in corso
+
                                             disabled={generatingInterventions || generatingPlan || loadingReport || !reportData.statisticheGap || reportData.statisticheGap.totalGaps === 0 || (reportData.statisticheGap.countByRisk?.alto === 0 && reportData.statisticheGap.countByRisk?.medio === 0)}
                                         >
                                             {generatingInterventions ? 'Genero...' : 'Genera/Aggiorna Interventi AI'}
@@ -518,13 +476,13 @@ const ReportPage = () => {
                                      </span>
                                 </Tooltip>
                                 <Tooltip title="Crea automaticamente un nuovo Piano d'Azione (in stato Bozza) nel Modulo Progettazione, associando gli interventi AI generati/aggiornati al momento.">
-                                     <span> {/* Wrapper per Tooltip su bottone disabilitato */}
+                                     <span> {}
                                         <Button
                                             variant="contained"
                                             color="secondary"
                                             startIcon={generatingPlan ? <CircularProgress size={20} color="inherit"/> : <PlaylistAddCheckIcon />}
                                             onClick={handleCreatePlanFromAI}
-                                             // Disabilita se non ci sono gap o se una delle due azioni è in corso
+
                                             disabled={generatingInterventions || generatingPlan || loadingReport || !reportData.statisticheGap || reportData.statisticheGap.totalGaps === 0 || (reportData.statisticheGap.countByRisk?.alto === 0 && reportData.statisticheGap.countByRisk?.medio === 0)}
                                         >
                                             {generatingPlan ? 'Creo Piano...' : 'Crea Piano da Interventi AI'}
@@ -533,10 +491,9 @@ const ReportPage = () => {
                                 </Tooltip>
                             </Stack>
                         </Box>
-                        {/* --- Fine Sezione Bottoni --- */}
+                        {}
 
-
-                        {/* Elenco Gap Dettagliato (Accordion) */}
+                        {}
                         <Box>
                             <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Elenco Gap Rilevati ({reportData.statisticheGap?.totalGaps || 0})</Typography>
                              {reportData.elencoGapCompleto?.length > 0 ? (
@@ -560,7 +517,7 @@ const ReportPage = () => {
                                                  </>
                                              )}
                                              <Box sx={{ textAlign: 'right', mt: 1 }}>
-                                                  {/* Modificato stato passato per precompilazione */}
+                                                  {}
                                                  <Button size="small" startIcon={<LaunchIcon/>} component={RouterLink} to={`/progettazione/interventi`} state={{ prefillFromGap: gap }}>Crea Intervento Manuale</Button>
                                              </Box>
                                          </AccordionDetails>
@@ -569,7 +526,7 @@ const ReportPage = () => {
                             ) : ( <Alert severity="success">Nessun gap rilevato per questa checklist.</Alert> )}
                         </Box>
 
-                        {/* Raccomandazioni */}
+                        {}
                         <Box>
                             <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Raccomandazioni Generali</Typography>
                             {reportData.raccomandazioni?.length > 0 ? (
@@ -580,11 +537,9 @@ const ReportPage = () => {
                     </Paper>
                 </Box>
             )}
-            {/* ---- FINE REPORT ---- */}
+            {}
         </Box>
     );
 };
 
 export default ReportPage;
-
-// END OF FILE client/src/pages/diagnosi/ReportPage.js (AGGIORNATO v8 - Genera Piano AI)

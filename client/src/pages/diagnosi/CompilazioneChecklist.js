@@ -4,25 +4,22 @@ import {
     Box, Typography, Paper, Grid, Button, CircularProgress, Alert,
     FormControl, RadioGroup, FormControlLabel, Radio, TextField,
     Accordion, AccordionSummary, AccordionDetails, Chip, Tooltip, IconButton, Divider,
-    Select, MenuItem, InputLabel // Assicurati che siano importati
+    Select, MenuItem, InputLabel
 } from '@mui/material';
-// Importa DatePicker e provider di localizzazione
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { it } from 'date-fns/locale'; // Importa locale italiano per date-fns
+import { it } from 'date-fns/locale';
 
-// Icons
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ErrorIcon from '@mui/icons-material/Error';
-import AddIcon from '@mui/icons-material/Add'; // Usato nel bottone
-import EditIcon from '@mui/icons-material/Edit'; // Per bottoni futuri
-import DeleteIcon from '@mui/icons-material/Delete'; // Per bottoni futuri
-import InfoIcon from '@mui/icons-material/Info'; // Nuova icona per la motivazione AI
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import InfoIcon from '@mui/icons-material/Info';
 
-// Funzione debounce per non salvare ad ogni keypress nelle note
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -44,7 +41,6 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
     const [savingError, setSavingError] = useState(null);
     const [currentStato, setCurrentStato] = useState('bozza');
 
-    // Funzione per caricare i dettagli della checklist
     const fetchChecklistDetails = useCallback(async () => {
         if (!checklistId) return;
         setLoading(true); setError(null); setSavingError(null); setChecklist(null); setAnswers({}); setSavingStatus({});
@@ -52,7 +48,7 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
             console.log(`>>> Fetching checklist ${checklistId}`);
             const response = await axios.get(`http://localhost:5001/api/checklist/${checklistId}`);
             const fetchedData = response.data.data;
-            console.log(">>> DETTAGLI CHECKLIST CARICATI (CompilazioneChecklist):", JSON.stringify(fetchedData, null, 2)); // LOG DETTAGLIATO
+            console.log(">>> DETTAGLI CHECKLIST CARICATI (CompilazioneChecklist):", JSON.stringify(fetchedData, null, 2));
 
             if (!fetchedData) throw new Error("Checklist non trovata o dati non validi.");
 
@@ -61,15 +57,12 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
 
             const initialAnswers = {};
             if (fetchedData?.answers && Array.isArray(fetchedData.answers)) {
-                // --- VERIFICA QUI OGNI SINGOLO answerDoc ---
                 fetchedData.answers.forEach(answerDoc => {
                     if(answerDoc && answerDoc.itemId){
                        initialAnswers[answerDoc.itemId] = { risposta: answerDoc.risposta, note: answerDoc.note ?? '' };
-                       // LOG PER VERIFICARE LA PRESENZA DI dependsOn
                        console.log(`Item (frontend): ${answerDoc.itemId}, DependsOn:`, JSON.stringify(answerDoc.dependsOn)); 
                     } else { console.warn(">>> Trovato answerDoc non valido:", answerDoc); }
                 });
-                // -----------------------------------------
             } else { console.warn(">>> Checklist.answers non è un array o manca:", fetchedData?.answers); }
             setAnswers(initialAnswers);
             console.log(">>> Stato 'answers' inizializzato per la compilazione");
@@ -80,12 +73,10 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
         } finally { setLoading(false); }
     }, [checklistId]);
 
-    // Carica i dettagli al montaggio o quando l'ID cambia
     useEffect(() => {
         fetchChecklistDetails();
     }, [fetchChecklistDetails]);
 
-    // Funzione per salvare una singola risposta/nota
     const saveAnswer = useCallback(async (itemId, field, value) => {
         console.log(`Tentativo salvataggio per ${itemId}, campo ${field}, valore ${value}`);
         setSavingStatus(prev => ({ ...prev, [itemId]: 'saving' }));
@@ -109,12 +100,10 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
         }
     }, [checklistId, answers]);
 
-     // Debounce per le note
      const debouncedSaveNote = useCallback(debounce((itemId, value) => {
          saveAnswer(itemId, 'note', value);
      }, 1000), [saveAnswer]);
 
-    // Handler per cambio risposta
     const handleRispostaChange = (itemId, eventOrValue) => {
         let newValue;
         if (eventOrValue && eventOrValue.target) {
@@ -124,20 +113,19 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
         }
 
         console.log(`handleRispostaChange for ${itemId}, new value:`, newValue);
-        console.log("Stato 'answers' PRIMA dell'aggiornamento:", JSON.stringify(answers)); // LOG PRIMA
+        console.log("Stato 'answers' PRIMA dell'aggiornamento:", JSON.stringify(answers));
 
         setAnswers(prev => {
             const newState = {
                 ...prev,
                 [itemId]: { ...(prev[itemId] || { risposta: null, note: '' }), risposta: newValue }
             };
-            console.log("Stato 'answers' DOPO l'aggiornamento (dentro setAnswers):", JSON.stringify(newState)); // LOG DOPO
+            console.log("Stato 'answers' DOPO l'aggiornamento (dentro setAnswers):", JSON.stringify(newState));
             return newState;
         });
         saveAnswer(itemId, 'risposta', newValue);
     };
 
-    // Handler per cambio note
     const handleNoteChange = (itemId, event) => {
          const newValue = event.target.value;
          setAnswers(prev => ({
@@ -147,7 +135,6 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
          debouncedSaveNote(itemId, newValue);
     };
 
-    // Aggiorna stato checklist
     const updateChecklistStatus = async (newStatus) => {
          setLoading(true); setError(null); setSavingError(null);
          try {
@@ -155,7 +142,6 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
             setCurrentStato(newStatus);
             if (newStatus === 'completata') {
                 console.log("Checklist completata, triggerare generazione GAP?");
-                // TODO: Chiamare API generazione GAP? Mostrare messaggio?
             }
          } catch (err) {
              console.error(`Errore aggiornamento stato a ${newStatus}:`, err);
@@ -163,54 +149,46 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
          } finally { setLoading(false); }
     };
 
-    // --- NUOVA LOGICA PER DETERMINARE LA VISIBILITÀ DELLE DOMANDE ---
     const isQuestionVisible = useCallback((questionDoc) => {
-        // LOG INIZIALE
         console.log(`isQuestionVisible per ${questionDoc.itemId}? dependsOn:`, JSON.stringify(questionDoc.dependsOn));
 
         if (!questionDoc.dependsOn || questionDoc.dependsOn.length === 0) {
             console.log(` -> ${questionDoc.itemId} è visibile (no dependsOn).`);
-            return true; // Visibile di default se non ha dipendenze
+            return true;
         }
-        // Deve soddisfare TUTTE le condizioni
         const allConditionsMet = questionDoc.dependsOn.every(condition => {
-            const sourceAnswerData = answers[condition.sourceItemId]; // answers è lo stato { itemId: {risposta, note} }
+            const sourceAnswerData = answers[condition.sourceItemId];
             const sourceAnswerValue = sourceAnswerData ? sourceAnswerData.risposta : null;
             
-            // LOG CONDIZIONE
             console.log(`  Condizione per ${questionDoc.itemId}: source=${condition.sourceItemId}, expected=${condition.expectedAnswer}, actual=${sourceAnswerValue}`);
             
-            const conditionMet = String(sourceAnswerValue).toLowerCase() === String(condition.expectedAnswer).toLowerCase(); // Confronto case-insensitive
+            const conditionMet = String(sourceAnswerValue).toLowerCase() === String(condition.expectedAnswer).toLowerCase();
             console.log(`  -> Condition Met: ${conditionMet}`);
             return conditionMet;
         });
 
         console.log(` -> Risultato finale visibilità per ${questionDoc.itemId}: ${allConditionsMet}`);
         return allConditionsMet;
-    }, [answers]); // Dipende dallo stato corrente delle risposte
+    }, [answers]);
 
-    // Raggruppa le domande per Area E FILTRA PER VISIBILITÀ
     const visibleQuestionsByArea = useMemo(() => {
-        console.log(">>> Ricalcolo visibleQuestionsByArea... Stato 'answers':", JSON.stringify(answers)); // Logga lo stato 'answers'
+        console.log(">>> Ricalcolo visibleQuestionsByArea... Stato 'answers':", JSON.stringify(answers));
         if (!checklist?.answers || !Array.isArray(checklist.answers)) {
             console.log("   -> checklist.answers non valido.");
             return {};
         }
         const groups = {};
-        checklist.answers.forEach(answerDoc => { // answerDoc è l'oggetto domanda dalla checklist
+        checklist.answers.forEach(answerDoc => {
             if (!answerDoc || !answerDoc.area || !answerDoc.itemId) {
                 console.warn("Trovato answerDoc non valido in visibleQuestionsByArea:", answerDoc);
                 return;
             }
             
-            // LOG PRIMA DELLA CHIAMATA
             console.log(`   Verifico visibilità per ${answerDoc.itemId} (Area: ${answerDoc.area})`);
-            const isVisible = isQuestionVisible(answerDoc); // Chiama la funzione debuggata
-            // LOG DOPO LA CHIAMATA
+            const isVisible = isQuestionVisible(answerDoc);
             console.log(`   -> ${answerDoc.itemId} è visibile? ${isVisible}`);
 
-            // Controlla la visibilità QUI
-            if (isVisible) { // answerDoc contiene i campi del QuestionTemplate, incluso dependsOn
+            if (isVisible) {
                 const areaKey = answerDoc.area;
                 if (!groups[areaKey]) {
                     groups[areaKey] = [];
@@ -218,44 +196,37 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
                 groups[areaKey].push(answerDoc);
             }
         });
-        // Ordina i gruppi
         Object.values(groups).forEach(group => {
             group.sort((a, b) => (a.ordine || 0) - (b.ordine || 0) || (a.itemId || "").localeCompare(b.itemId || ""));
         });
         console.log(">>> Gruppi visibili calcolati:", Object.keys(groups).map(k => `${k}: ${groups[k].length} domande`));
         return groups;
-    }, [checklist, answers, isQuestionVisible]); // Ricalcola quando la checklist o la funzione di visibilità (che dipende da `answers`) cambiano.
-    // ---------------------------------------------------------------
+    }, [checklist, answers, isQuestionVisible]);
 
-    // Calcola percentuale completamento
      const completionPercentage = useMemo(() => {
         if (!checklist?.answers) return 0;
-        const totalPotentiallyVisibleQuestions = checklist.answers.length; // Tutte le domande caricate per questa checklist
+        const totalPotentiallyVisibleQuestions = checklist.answers.length;
         if (totalPotentiallyVisibleQuestions === 0) return 0;
         
         const answeredCount = checklist.answers.reduce((count, qDoc) => {
-            // Considera risposta valida solo se la domanda è attualmente visibile E ha una risposta
             if (isQuestionVisible(qDoc) && answers[qDoc.itemId]?.risposta !== null && answers[qDoc.itemId]?.risposta !== undefined && answers[qDoc.itemId]?.risposta !== '') {
                 return count + 1;
             }
             return count;
         }, 0);
 
-        // Calcola la % rispetto alle domande *attualmente visibili*
         let currentlyVisibleCount = 0;
         Object.values(visibleQuestionsByArea).forEach(group => currentlyVisibleCount += group.length);
         
-        if (currentlyVisibleCount === 0) return 0; // Evita divisione per zero se nessuna domanda è visibile
+        if (currentlyVisibleCount === 0) return 0;
         return Math.round((answeredCount / currentlyVisibleCount) * 100);
 
     }, [checklist, answers, isQuestionVisible, visibleQuestionsByArea]);
 
-    // Gestione Stati UI Iniziali
     if (loading && !checklist) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}><CircularProgress /></Box>;
     if (error && !checklist) return ( <Box><Alert severity="error">Errore caricamento: {error}</Alert><Button variant="outlined" onClick={onBackToList} sx={{ mt: 2 }}>Torna Indietro</Button></Box> );
     if (!checklist) return ( <Box><Alert severity="warning">Checklist non trovata.</Alert><Button variant="outlined" onClick={onBackToList} sx={{ mt: 2 }}>Torna Indietro</Button></Box> );
 
-    // --- Rendering Effettivo ---
     return (
          <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -270,27 +241,24 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
                  {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
              </Paper>
 
-            {/* Log prima del map degli Accordion */}
             {console.log(">>> Rendering Accordions... Esistono visibleQuestionsByArea?", !!visibleQuestionsByArea)}
             {visibleQuestionsByArea && console.log(">>> Chiavi Aree:", Object.keys(visibleQuestionsByArea))}
 
-            {/* Ciclo Accordion basato su visibleQuestionsByArea */}
             {Object.keys(visibleQuestionsByArea).length > 0 ? Object.keys(visibleQuestionsByArea).sort().map((area) => {
                 const domandeVisibiliDelGruppo = visibleQuestionsByArea[area];
                 if (!domandeVisibiliDelGruppo || domandeVisibiliDelGruppo.length === 0) {
-                    // Questo non dovrebbe succedere se visibleQuestionsByArea è costruito correttamente
                     return null; 
                 }
                 console.log(`>>> Rendering Area: ${area}, Numero Domande Visibili: ${domandeVisibiliDelGruppo.length}`);
                 return (
-                    <Accordion key={area} defaultExpanded={true /* o altra logica */} >
+                    <Accordion key={area} defaultExpanded={true } >
                          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#f5f5f5' }}>
                              <Typography sx={{ fontWeight: 'bold' }}>Area: {area} ({domandeVisibiliDelGruppo.length} visibili)</Typography>
                          </AccordionSummary>
                          <AccordionDetails sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            {domandeVisibiliDelGruppo.map((answerDoc) => { // answerDoc è l'oggetto con i dati della domanda
+                            {domandeVisibiliDelGruppo.map((answerDoc) => {
                                 const itemId = answerDoc.itemId;
-                                if (!itemId) return null; // Difesa aggiuntiva
+                                if (!itemId) return null;
 
                                 const domandaText = answerDoc.domandaText;
                                 const testoAiuto = answerDoc.testoAiuto;
@@ -332,7 +300,6 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
                                               </Typography>
                                           )}
                                         <Grid container spacing={2} alignItems="center">
-                                          {/* Colonna Risposta - Rendering Condizionale */}
                                           <Grid item xs={12} md={5}>
                                               <FormControl component="fieldset" size="small" fullWidth>
                                                   {(tipoRisposta === 'SiNoParz' || tipoRisposta === 'SiNo') && (
@@ -386,11 +353,9 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
                                                    )}
                                               </FormControl>
                                           </Grid>
-                                          {/* Colonna Note */}
                                           <Grid item xs={12} md={6}>
                                               <TextField fullWidth label="Note / Dettagli" variant="outlined" size="small" multiline rows={1} name={`note-${itemId}`} value={currentLocalAnswer.note} onChange={(e) => handleNoteChange(itemId, e)} />
                                           </Grid>
-                                          {/* Colonna Stato Salvataggio */}
                                           <Grid item xs={12} md={1} sx={{ textAlign: 'center', minHeight: '40px' }}>
                                               {saveState === 'saving' && <CircularProgress size={20} />}
                                               {saveState === 'saved' && <CheckCircleIcon color="success" />}
@@ -407,8 +372,6 @@ const CompilazioneChecklist = ({ checklistId, onBackToList }) => {
                  <Alert severity="info">Nessuna domanda attualmente visibile per questa checklist o tutte le aree sono vuote.</Alert>
             )}
 
-
-            {/* Bottone per marcare come completata */}
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
                  {currentStato !== 'completata' && (
                      <Button variant="contained" color="success" disabled={loading || Object.values(savingStatus).includes('saving')} onClick={() => updateChecklistStatus('completata')} >

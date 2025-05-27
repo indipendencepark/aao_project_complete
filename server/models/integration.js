@@ -1,11 +1,11 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+
 const Schema = mongoose.Schema;
 
-// Schema per i dati importati
 const ImportedDataSchema = new Schema({
   tipo_file: {
     type: String,
-    enum: ['excel', 'word', 'altro'],
+    enum: [ "excel", "word", "altro" ],
     required: true
   },
   nome_file: {
@@ -14,7 +14,7 @@ const ImportedDataSchema = new Schema({
   },
   modulo_destinazione: {
     type: String,
-    enum: ['diagnosi', 'progettazione', 'monitoraggio'],
+    enum: [ "diagnosi", "progettazione", "monitoraggio" ],
     required: true
   },
   dati_importati: {
@@ -23,13 +23,13 @@ const ImportedDataSchema = new Schema({
   },
   stato_importazione: {
     type: String,
-    enum: ['completata', 'parziale', 'fallita'],
+    enum: [ "completata", "parziale", "fallita" ],
     required: true
   },
-  dettagli_errori: [String],
+  dettagli_errori: [ String ],
   importato_da: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: "User"
   },
   data_importazione: {
     type: Date,
@@ -37,7 +37,6 @@ const ImportedDataSchema = new Schema({
   }
 });
 
-// Schema per l'integrazione AI
 const AIModelSchema = new Schema({
   nome: {
     type: String,
@@ -48,12 +47,12 @@ const AIModelSchema = new Schema({
   },
   tipo: {
     type: String,
-    enum: ['classificazione', 'regressione', 'clustering', 'nlp'],
+    enum: [ "classificazione", "regressione", "clustering", "nlp" ],
     required: true
   },
   modulo: {
     type: String,
-    enum: ['diagnosi', 'progettazione', 'monitoraggio'],
+    enum: [ "diagnosi", "progettazione", "monitoraggio" ],
     required: true
   },
   parametri: {
@@ -75,11 +74,10 @@ const AIModelSchema = new Schema({
   }
 });
 
-// Schema per i risultati dell'AI
 const AIResultSchema = new Schema({
   model_id: {
     type: Schema.Types.ObjectId,
-    ref: 'AIModel',
+    ref: "AIModel",
     required: true
   },
   input_data: {
@@ -107,12 +105,14 @@ const AIResultSchema = new Schema({
   }
 });
 
-const ImportedData = mongoose.model('ImportedData', ImportedDataSchema);
-const AIModel = mongoose.model('AIModel', AIModelSchema);
-const AIResult = mongoose.model('AIResult', AIResultSchema);
+const ImportedData = mongoose.model("ImportedData", ImportedDataSchema);
+
+const AIModel = mongoose.model("AIModel", AIModelSchema);
+
+const AIResult = mongoose.model("AIResult", AIResultSchema);
 
 module.exports = {
-  ImportedData,
-  AIModel,
-  AIResult
+  ImportedData: ImportedData,
+  AIModel: AIModel,
+  AIResult: AIResult
 };

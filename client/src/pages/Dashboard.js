@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, Typography, Grid, Paper, Card, CardContent, CardHeader, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 
-// Icons
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import BuildIcon from '@mui/icons-material/Build';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';

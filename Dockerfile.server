@@ -1,16 +1,5 @@
-# Dockerfile.server (AGGIORNATO - Base Debian)
-
-# Usa un'immagine Node.js LTS basata su Debian (più compatibile con Puppeteer)
 FROM node:18
-# In alternativa, prova: FROM node:18-bookworm-slim
-
-# Imposta la directory di lavoro all'interno del container
 WORKDIR /usr/src/app
-
-# (Opzionale ma Raccomandato) Installa dipendenze comuni per Puppeteer su Debian
-# Questo passo potrebbe non essere strettamente necessario se Puppeteer le scarica
-# correttamente, ma aggiungerle previene molti problemi comuni.
-# Nota: Questo aumenta leggermente la dimensione dell'immagine.
 RUN apt-get update && apt-get install -yq --no-install-recommends \
     ca-certificates \
     fonts-liberation \
@@ -48,22 +37,10 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     lsb-release \
     wget \
     xdg-utils \
-    # Pulisci cache apt per ridurre dimensione immagine
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-# Copia PRIMA package.json e package-lock.json per sfruttare la cache di Docker
 COPY package*.json ./
-
-# Installa le dipendenze del server definite nel package.json della root
-# Inclusa Puppeteer, che scaricherà Chromium
 RUN npm install
-
-# Copia il resto del codice sorgente
 COPY . .
-
-# Esponi la porta su cui il server Express ascolterà
 EXPOSE 5000
-
-# Comando per avviare il server in modalità sviluppo (usa nodemon)
 CMD [ "npm", "run", "server" ]

@@ -1,4 +1,4 @@
-// START OF FILE client/src/pages/diagnosi/NuovaChecklist.js (AGGIORNATO v3 - Mapping Completo)
+
 
 import React, { useState } from 'react';
 import axios from 'axios';
@@ -9,13 +9,13 @@ import {
     Divider, Chip
 } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-// Importa DatePicker e Adapter
+
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { it } from 'date-fns/locale';
 
 const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
-    // --- STATI ---
+
     const [activeStep, setActiveStep] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -41,7 +41,6 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
 
     const steps = ['Informazioni Azienda', 'Revisione e Creazione'];
 
-    // --- HANDLERS ---
     const handleNext = () => { setActiveStep((prev) => prev + 1); };
     const handleBack = () => { setActiveStep((prev) => prev - 1); };
 
@@ -51,7 +50,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
         setError(null); setVisuraError(null);
         if (keys.length === 2) {
             const [parent, child] = keys;
-            // Per i checkbox, assicurati che il valore sia booleano
+
             const newValue = type === 'checkbox' ? checked : value;
             setChecklistData(prev => ({ ...prev, [parent]: { ...prev[parent], [child]: newValue } }));
         } else {
@@ -106,12 +105,9 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
              const extracted = response.data.data;
              console.log(">>> Dati estratti ricevuti (frontend):", extracted);
 
-             // --- AGGIORNAMENTO STATO CON MAPPING COMPLETO ---
              setChecklistData(prev => {
                  const newClienteData = { ...prev.cliente };
 
-                 // Mappatura campi (usa ?? per mantenere valore esistente se AI restituisce null/undefined dove non ha senso)
-                 // Usa || '' per stringhe dove preferisci stringa vuota a null/undefined
                  newClienteData.nome = extracted.nome || newClienteData.nome;
                  newClienteData.codiceFiscale = extracted.codiceFiscale || newClienteData.codiceFiscale;
                  newClienteData.partitaIva = extracted.partitaIva || newClienteData.partitaIva;
@@ -135,7 +131,6 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                  newClienteData.numeroUnitaLocali = extracted.numeroUnitaLocali ?? newClienteData.numeroUnitaLocali; // Aggiunto e Usa ??
                  newClienteData.partecipazioni = extracted.partecipazioni ?? newClienteData.partecipazioni; // Aggiunto e Usa ?? per boolean
 
-                 // Mappatura Date (usa parseDateSafe e aggiorna solo se valida)
                  const parsedCostituzione = parseDateSafe(extracted.dataCostituzione);
                  if (parsedCostituzione !== null) newClienteData.dataCostituzione = parsedCostituzione;
 
@@ -150,7 +145,6 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
 
                  return { ...prev, cliente: newClienteData };
              });
-             // --- FINE AGGIORNAMENTO STATO ---
 
              alert('Dati estratti con successo e campi pre-compilati!');
          } catch (err) {
@@ -164,7 +158,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
         try {
             const clienteData = {
                 ...checklistData.cliente,
-                // Converte numeri e date in formato corretto per il backend
+
                 capitaleSociale: checklistData.cliente.capitaleSociale !== '' ? Number(checklistData.cliente.capitaleSociale) : null,
                 numeroAddetti: checklistData.cliente.numeroAddetti !== '' ? Number(checklistData.cliente.numeroAddetti) : null,
                 numeroSoci: checklistData.cliente.numeroSoci !== '' ? Number(checklistData.cliente.numeroSoci) : null,
@@ -193,7 +187,6 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
         } finally { setLoading(false); }
     };
 
-    // --- GET STEP CONTENT ---
     const getStepContent = (step) => {
         switch (step) {
             case 0:
@@ -204,7 +197,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
                         <Grid container spacing={2}>
 
-                            {/* Upload Visura */}
+                            {}
                             <Grid item xs={12}><Divider sx={{ my: 1 }}><Chip label="Carica Visura (Opzionale)" size="small"/></Divider></Grid>
                             <Grid item xs={12} sm={8} sx={{ display: 'flex', alignItems: 'center' }}>
                               <Button component="label" variant="outlined" startIcon={<UploadFileIcon />} sx={{mr: 1}} disabled={processingVisura}>
@@ -219,7 +212,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                             </Grid>
                             {visuraError && <Grid item xs={12}><Alert severity="warning" sx={{mt: 1}}>{visuraError}</Alert></Grid>}
 
-                            {/* Anagrafica */}
+                            {}
                             <Grid item xs={12}><Divider sx={{ my: 1 }}><Chip label="Anagrafica" size="small"/></Divider></Grid>
                             <Grid item xs={12} sm={6} md={4}> <TextField required name="cliente.nome" label="Denominazione" fullWidth size="small" value={checklistData.cliente.nome} onChange={handleInputChange} disabled={loading} InputLabelProps={{ shrink: !!checklistData.cliente.nome }}/> </Grid>
                             <Grid item xs={12} sm={6} md={4}> <TextField name="cliente.codiceFiscale" label="Codice Fiscale" fullWidth size="small" value={checklistData.cliente.codiceFiscale} onChange={handleInputChange} disabled={loading} InputLabelProps={{ shrink: !!checklistData.cliente.codiceFiscale }}/> </Grid>
@@ -230,11 +223,11 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                   <InputLabel id="forma-giuridica-label">Forma Giuridica</InputLabel>
                                   <Select labelId="forma-giuridica-label" name="cliente.formaGiuridica" value={checklistData.cliente.formaGiuridica} label="Forma Giuridica" onChange={handleInputChange} disabled={loading}>
                                       <MenuItem value=""><em>Non specificata</em></MenuItem>
-                                      <MenuItem value="societa' a responsabilita' limitata">SRL</MenuItem> {/* Match esatto visura */}
-                                      {/* Aggiungere altre opzioni mappate se necessario */}
+                                      <MenuItem value="societa' a responsabilita' limitata">SRL</MenuItem> {}
+                                      {}
                                       <MenuItem value="SRLS">SRLS</MenuItem>
                                       <MenuItem value="SPA">SPA</MenuItem>
-                                      {/* ... */}
+                                      {}
                                       <MenuItem value="Altro">Altro</MenuItem>
                                   </Select>
                                 </FormControl>
@@ -250,14 +243,14 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                 <DatePicker label="Data Iscrizione RI" value={checklistData.cliente.dataIscrizioneRI} onChange={(newValue) => handleDateChange('cliente.dataIscrizioneRI', newValue)} slots={{ textField: (params) => <TextField {...params} fullWidth size="small" disabled={loading}/> }} />
                             </Grid>
 
-                            {/* Sede Legale */}
+                            {}
                             <Grid item xs={12}><Divider sx={{ my: 1 }}><Chip label="Sede Legale" size="small"/></Divider></Grid>
                             <Grid item xs={12} md={8}> <TextField name="cliente.sede_via" label="Indirizzo (Via/Piazza/Km...)" fullWidth size="small" value={checklistData.cliente.sede_via} onChange={handleInputChange} disabled={loading} InputLabelProps={{ shrink: !!checklistData.cliente.sede_via }}/> </Grid>
                             <Grid item xs={12} md={4}> <TextField name="cliente.sede_cap" label="CAP" fullWidth size="small" value={checklistData.cliente.sede_cap} onChange={handleInputChange} disabled={loading} InputLabelProps={{ shrink: !!checklistData.cliente.sede_cap }}/> </Grid>
                             <Grid item xs={12} md={8}> <TextField name="cliente.sede_comune" label="Comune" fullWidth size="small" value={checklistData.cliente.sede_comune} onChange={handleInputChange} disabled={loading} InputLabelProps={{ shrink: !!checklistData.cliente.sede_comune }}/> </Grid>
                             <Grid item xs={12} md={4}> <TextField name="cliente.sede_provincia" label="Provincia (Sigla)" fullWidth size="small" inputProps={{ maxLength: 2, style: { textTransform: 'uppercase' } }} value={checklistData.cliente.sede_provincia} onChange={handleInputChange} disabled={loading} InputLabelProps={{ shrink: !!checklistData.cliente.sede_provincia }}/> </Grid>
 
-                           {/* Attività e Struttura */}
+                           {}
                            <Grid item xs={12}><Divider sx={{ my: 1 }}><Chip label="Attività e Struttura" size="small"/></Divider></Grid>
                            <Grid item xs={12} sm={6} md={4}>
                              <FormControl fullWidth size="small">
@@ -282,14 +275,14 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                     <InputLabel id="sis-amm-label">Sistema Amministrazione</InputLabel>
                                     <Select labelId="sis-amm-label" name="cliente.sistemaAmministrazione" value={checklistData.cliente.sistemaAmministrazione} label="Sistema Amministrazione" onChange={handleInputChange} disabled={loading}>
                                          <MenuItem value=""><em>Non specificato</em></MenuItem>
-                                         <MenuItem value="consiglio di amministrazione">Consiglio di Amministrazione</MenuItem> {/* Match esatto visura */}
+                                         <MenuItem value="consiglio di amministrazione">Consiglio di Amministrazione</MenuItem> {}
                                          <MenuItem value="Amm. Unico">Amministratore Unico</MenuItem>
                                          <MenuItem value="Altro">Altro</MenuItem>
                                     </Select>
                                 </FormControl>
                            </Grid>
                             <Grid item xs={12} sm={6} md={4}>
-                                {/* Assicurati che 'checked' usi il valore booleano corretto */}
+                                {}
                                 <FormControlLabel control={<Checkbox name="cliente.organoControlloPresente" checked={!!checklistData.cliente.organoControlloPresente} onChange={handleInputChange} disabled={loading}/>} label="Organo Controllo Presente?" />
                            </Grid>
                            <Grid item xs={12} sm={6} md={4}>
@@ -297,7 +290,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                     <InputLabel id="tipo-org-controllo-label">Tipo Organo Controllo</InputLabel>
                                     <Select labelId="tipo-org-controllo-label" name="cliente.tipoOrganoControllo" value={checklistData.cliente.tipoOrganoControllo} label="Tipo Organo Controllo" onChange={handleInputChange}>
                                          <MenuItem value=""><em>Non specificato</em></MenuItem>
-                                         <MenuItem value="Sindaco Unico">Sindaco Unico</MenuItem> {/* Match esatto visura */}
+                                         <MenuItem value="Sindaco Unico">Sindaco Unico</MenuItem> {}
                                          <MenuItem value="Collegio Sindacale">Collegio Sindacale</MenuItem>
                                          <MenuItem value="Revisore Legale">Revisore Legale</MenuItem>
                                          <MenuItem value="Società Revisione">Società Revisione</MenuItem>
@@ -306,18 +299,18 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                            </Grid>
                            <Grid item xs={12} sm={6} md={4}> <TextField name="cliente.numeroUnitaLocali" label="Numero Unità Locali" type="number" fullWidth size="small" value={checklistData.cliente.numeroUnitaLocali} onChange={handleInputChange} disabled={loading} InputLabelProps={{ shrink: checklistData.cliente.numeroUnitaLocali != null && checklistData.cliente.numeroUnitaLocali !== '' }}/> </Grid>
 
-                            {/* Varie */}
+                            {}
                            <Grid item xs={12}><Divider sx={{ my: 1 }}><Chip label="Varie" size="small"/></Divider></Grid>
                            <Grid item xs={12} sm={6}> <TextField name="cliente.certificazioni" label="Certificazioni (separate da virgola)" fullWidth size="small" value={checklistData.cliente.certificazioni} onChange={handleInputChange} disabled={loading} InputLabelProps={{ shrink: !!checklistData.cliente.certificazioni }}/> </Grid>
                            <Grid item xs={6} sm={3}><FormControlLabel control={<Checkbox name="cliente.importExport" checked={!!checklistData.cliente.importExport} onChange={handleInputChange} disabled={loading}/>} label="Import/Export?" /></Grid>
                            <Grid item xs={6} sm={3}><FormControlLabel control={<Checkbox name="cliente.partecipazioni" checked={!!checklistData.cliente.partecipazioni} onChange={handleInputChange} disabled={loading}/>} label="Partecipazioni?" /></Grid>
 
-                            {/* Checklist Info & Valutazione Preliminare */}
+                            {}
                            <Grid item xs={12}><Divider sx={{ my: 1 }}><Chip label="Info Checklist & Valutazione" size="small"/></Divider></Grid>
                            <Grid item xs={12} sm={6}> <TextField required name="nome" label="Nome Sessione Checklist" fullWidth size="small" value={checklistData.nome} onChange={handleInputChange} disabled={loading} InputLabelProps={{ shrink: !!checklistData.nome }}/> </Grid>
                            <Grid item xs={12} sm={6}> <TextField name="descrizione" label="Descrizione Checklist (Opz.)" fullWidth size="small" value={checklistData.descrizione} onChange={handleInputChange} disabled={loading} InputLabelProps={{ shrink: !!checklistData.descrizione }}/> </Grid>
                            <Grid item xs={12} sm={6}>
-                              <FormControl fullWidth size="small" required> {/* ... Select Dimensione ... */}
+                              <FormControl fullWidth size="small" required> {}
                                 <InputLabel id="dimensione-stimata-label">Dimensione Stimata (Consulente)</InputLabel>
                                  <Select required labelId="dimensione-stimata-label" name="cliente.dimensioneStimata" value={checklistData.cliente.dimensioneStimata} label="Dimensione Stimata (Consulente)" onChange={handleInputChange} disabled={loading}>
                                        <MenuItem value=""><em>Seleziona</em></MenuItem><MenuItem value="Micro">Micro</MenuItem><MenuItem value="Piccola">Piccola</MenuItem><MenuItem value="Media">Media</MenuItem><MenuItem value="Grande">Grande</MenuItem>
@@ -325,7 +318,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                               </FormControl>
                             </Grid>
                             <Grid item xs={12} sm={6}>
-                              <FormControl fullWidth size="small" required> {/* ... Select Complessità ... */}
+                              <FormControl fullWidth size="small" required> {}
                                 <InputLabel id="complessita-label">Complessità (Consulente)</InputLabel>
                                  <Select required labelId="complessita-label" name="cliente.complessita" value={checklistData.cliente.complessita} label="Complessità (Consulente)" onChange={handleInputChange} disabled={loading}>
                                       <MenuItem value=""><em>Seleziona</em></MenuItem><MenuItem value="Bassa">Bassa</MenuItem><MenuItem value="Media">Media</MenuItem><MenuItem value="Alta">Alta</MenuItem>
@@ -333,7 +326,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                               </FormControl>
                             </Grid>
 
- {/* --- NUOVI CAMPI CONTESTO STRATEGICO --- */}
+ {}
  <Grid item xs={12}><Divider sx={{ my: 1 }}><Chip label="Contesto Strategico (Opzionale)" size="small" /></Divider></Grid>
                                 <Grid item xs={12}>
                                     <TextField
@@ -365,7 +358,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                         InputLabelProps={{ shrink: !!checklistData.cliente.criticitaPercepite }}
                                     />
                                 </Grid>
-                                {/* --- FINE NUOVI CAMPI --- */}
+                                {}
 
                         </Grid>
                       </Box>
@@ -373,7 +366,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                 );
             case 1: // Revisione
                 return (
-                    <Box sx={{ p: 2 }}> {/* ... Step Revisione ... */}
+                    <Box sx={{ p: 2 }}> {}
                         <Typography variant="h6" gutterBottom>Revisione e Creazione</Typography>
                         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
                         <Alert severity="info" sx={{ mb: 3 }}>Rivedi le informazioni prima di creare la checklist. Le domande verranno aggiunte automaticamente in base a Dimensione e Complessità.</Alert>
@@ -381,7 +374,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                         <Typography variant="subtitle1" sx={{mt: 1}}><strong>Cliente:</strong> {checklistData.cliente.nome}</Typography>
                         <Typography variant="body2">Dimensione Stimata: {checklistData.cliente.dimensioneStimata || 'N/D'}</Typography>
                         <Typography variant="body2">Complessità: {checklistData.cliente.complessita || 'N/D'}</Typography>
-                                                {/* NUOVI CAMPI IN REVISIONE */}
+                                                {}
                                                 <Typography variant="body2" sx={{mt:1}}><strong>Obiettivi Strategici:</strong> {checklistData.cliente.obiettiviStrategici || 'Non inseriti'}</Typography>
                         <Typography variant="body2"><strong>Criticità Percepite:</strong> {checklistData.cliente.criticitaPercepite || 'Non inserite'}</Typography>
                     </Box>
@@ -390,7 +383,6 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
         }
     };
 
-    // --- RENDER ---
     return (
         <Paper sx={{ width: '100%', p: { xs: 1, sm: 2 } }}>
             <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
@@ -419,5 +411,3 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
 };
 
 export default NuovaChecklist;
-
-// END OF FILE client/src/pages/diagnosi/NuovaChecklist.js (AGGIORNATO v3 - Mapping Completo)
