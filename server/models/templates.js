@@ -41,8 +41,9 @@ const QuestionTemplateSchema = new Schema({
     type: String
   },
   tags: {
-    type: [ String ],
-    default: []
+    type: [String],
+    default: [],
+    index: true
   },
 
   dependsOn: [ VisibilityConditionSchema ],

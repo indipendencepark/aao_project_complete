@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
@@ -224,11 +222,9 @@ const GapAnalysisPage = () => {
         <Box>
             <Typography variant="h5" gutterBottom>Gap Analysis</Typography>
 
-            {}
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Grid container spacing={3} alignItems="center">
-                     {}
-                     <Grid item xs={12} md={6}>
+                    <Grid item xs={12} md={6}>
                         <FormControl fullWidth disabled={loadingChecklists || loadingGaps}>
                             <InputLabel id="checklist-select-label">Seleziona Checklist Completata</InputLabel>
                             <Select
@@ -248,7 +244,6 @@ const GapAnalysisPage = () => {
                         {errorChecklists && <Alert severity="error" sx={{mt:1, width:'100%'}}>{errorChecklists}</Alert>}
                     </Grid>
 
-                    {}
                     {selectedChecklistId && (
                        <>
                            <Grid item xs={12} md={3}>
@@ -272,8 +267,7 @@ const GapAnalysisPage = () => {
                 </Grid>
             </Paper>
 
-            {}
-             {selectedChecklistId && ( // Mostra solo se una checklist è selezionata
+            {selectedChecklistId && (
                  <Paper sx={{ p: 3, mb: 4 }}>
                     <Typography variant="h6" gutterBottom>
                         Gap Rilevati
@@ -281,178 +275,189 @@ const GapAnalysisPage = () => {
                     </Typography>
                      {loadingGaps ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}><CircularProgress /></Box>
-                    ) : errorGaps ? ( // Errore specifico caricamento GAP
+                    ) : errorGaps ? (
                         <Alert severity="error">{errorGaps}</Alert>
-                    ) : gaps.length === 0 ? ( // Nessun gap trovato per la checklist
+                    ) : gaps.length === 0 ? (
                          <Alert severity="info"> Nessun gap rilevato per la checklist selezionata. </Alert>
-                     ) : filteredGaps.length === 0 ? ( // Gap trovati ma nessuno corrisponde ai filtri
+                     ) : filteredGaps.length === 0 ? (
                          <Alert severity="warning"> Nessun gap trovato con i filtri applicati. </Alert>
                      ) : (
 
                         <Grid container spacing={2}>
                             {filteredGaps.map((gap) => (
-                                    <Grid item xs={12} sm={6} key={gap._id}> {}
-                                        <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                            <CardContent sx={{ flexGrow: 1 }}>
-                                                {}
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                                                    <Chip
-                                                        icon={getRiskIcon(gap.livello_rischio)}
-                                                        label={getRiskLabel(gap.livello_rischio)}
-                                                        color={getRiskColor(gap.livello_rischio)}
-                                                        size="small"
-                                                        sx={{ mb: 1 }} // Spazio sotto il chip
-                                                    />
-                                                    {}
-                                                    <Typography variant="caption" color="text.secondary">{gap.item_id}</Typography>
-                                                </Box>
-                                                {}
-                                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                                                    {gap.domandaText || 'Testo domanda non disponibile'}
-                                                 </Typography>
-                                                 {}
-                                                <Typography variant="body2" sx={{ mb: 1.5 }}>
-                                                    <strong>Gap:</strong> {gap.descrizione}
+                                <Grid item xs={12} md={6} key={gap._id}>
+                                    <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                        <CardContent sx={{ flexGrow: 1 }}>
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                                <Chip
+                                                    icon={getRiskIcon(gap.livello_rischio)}
+                                                    label={getRiskLabel(gap.livello_rischio)}
+                                                    color={getRiskColor(gap.livello_rischio)}
+                                                    size="small"
+                                                />
+                                                <Typography variant="caption" color="text.secondary">{gap.item_id}</Typography>
+                                            </Box>
+                                            
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                                                {gap.domandaText || 'Testo domanda non disponibile'}
+                                            </Typography>
+                                            
+                                            <Typography variant="body2" sx={{ mb: 1 }}>
+                                                <strong>Gap (Descrizione Base):</strong> {gap.descrizione}
+                                            </Typography>
+                                            
+                                            {gap.descrizione_arricchita_ai && (
+                                                <Typography variant="body2" sx={{ mb: 1, fontStyle: 'italic', color: 'info.main' }}>
+                                                    <strong>Dettaglio AI:</strong> {gap.descrizione_arricchita_ai}
                                                 </Typography>
-                                                {}
-                                                <Typography variant="caption" color="text.secondary" display="block">
-                                                    <strong>Implicazioni:</strong> {gap.implicazioni || 'Non specificate'}
-                                                </Typography>
+                                            )}
 
-                                                {}
-                                                {(gap.arricchitoConAI && (gap.riferimentiNormativiSpecificiAI?.length > 0 || gap.impattoStimatoAI?.livello || gap.prioritaRisoluzioneAI)) && (
-                                                    <>
-                                                        <Divider sx={{ my: 1.5 }}><Chip label="Analisi AI Avanzata" size="small" variant="outlined" /></Divider>
-                                                        
-                                                        {gap.impattoStimatoAI?.livello && gap.impattoStimatoAI.livello !== 'Non determinabile' && (
-                                                            <Box sx={{ mb: 1 }}>
-                                                                <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>
-                                                                    Impatto Stimato AI:
-                                                                    <Chip 
-                                                                        label={`${gap.impattoStimatoAI.tipo || ''} - ${getRiskLabel(gap.impattoStimatoAI.livello)}`} 
-                                                                        color={getRiskColor(gap.impattoStimatoAI.livello)} 
-                                                                        size="small" 
-                                                                        sx={{ ml: 1, textTransform: 'capitalize' }}
-                                                                    />
-                                                                </Typography>
-                                                                {gap.impattoStimatoAI.descrizione && <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>{gap.impattoStimatoAI.descrizione}</Typography>}
-                                                            </Box>
-                                                        )}
+                                            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                                                <strong>Implicazioni (Base):</strong> {(Array.isArray(gap.implicazioni) ? gap.implicazioni.join('; ') : gap.implicazioni) || 'Non specificate'}
+                                            </Typography>
 
-                                                        {gap.prioritaRisoluzioneAI && (
-                                                            <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: gap.riferimentiNormativiSpecificiAI?.length > 0 ? 0.5 : 1 }}>
-                                                                Priorità Risoluzione AI: 
+                                            {gap.arricchitoConAI && (
+                                                <>
+                                                    <Divider sx={{ my: 1.5 }}><Chip label="Analisi AI Avanzata" size="small" variant="outlined" /></Divider>
+                                                    
+                                                    {gap.implicazioni_dettagliate_ai && gap.implicazioni_dettagliate_ai.length > 0 && (
+                                                        <Box sx={{ mb: 1 }}>
+                                                            <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>Implicazioni Dettagliate (AI):</Typography>
+                                                            <List dense disablePadding sx={{ fontSize: '0.75rem', pl: 1 }}>
+                                                                {gap.implicazioni_dettagliate_ai.map((imp, idx) => (
+                                                                    <ListItem key={`imp-ai-${idx}`} sx={{ py: 0 }}><ListItemText primaryTypographyProps={{ variant: 'caption' }} primary={`• ${imp}`} /></ListItem>
+                                                                ))}
+                                                            </List>
+                                                        </Box>
+                                                    )}
+
+                                                    {gap.impattoStimatoAI && gap.impattoStimatoAI.livello && gap.impattoStimatoAI.livello !== 'non determinabile' && (
+                                                        <Box sx={{ mb: 1 }}>
+                                                            <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>
+                                                                Impatto Stimato (AI):
                                                                 <Chip 
-                                                                    label={getRiskLabel(gap.prioritaRisoluzioneAI)} 
-                                                                    color={getRiskColor(gap.prioritaRisoluzioneAI)} 
+                                                                    label={`${gap.impattoStimatoAI.tipo || 'N/D'} - ${getRiskLabel(gap.impattoStimatoAI.livello)}`} 
+                                                                    color={getRiskColor(gap.impattoStimatoAI.livello)} 
                                                                     size="small" 
-                                                                    sx={{ ml: 1, textTransform: 'capitalize' }}
+                                                                    sx={{ ml: 0.5, textTransform: 'capitalize' }}
                                                                 />
                                                             </Typography>
-                                                        )}
-
-                                                        {gap.riferimentiNormativiSpecificiAI && gap.riferimentiNormativiSpecificiAI.length > 0 && (
-                                                            <Box sx={{ mb: 1 }}>
-                                                                <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>
-                                                                    Riferimenti Normativi (AI):
+                                                            {gap.impattoStimatoAI.descrizione && gap.impattoStimatoAI.descrizione !== "N/D" && (
+                                                                <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic', pl: 1 }}>
+                                                                    {gap.impattoStimatoAI.descrizione}
                                                                 </Typography>
-                                                                <List dense disablePadding sx={{ fontSize: '0.75rem', pl: 1 }}>
-                                                                    {gap.riferimentiNormativiSpecificiAI.map((ref, idx) => (
-                                                                        <ListItem key={`norm-${idx}`} sx={{ py: 0, alignItems: 'flex-start' }}>
-                                                                            <ListItemText 
-                                                                                primaryTypographyProps={{ variant: 'caption', fontStyle: 'italic' }}
-                                                                                primary={`- ${ref}`} 
-                                                                            />
-                                                                        </ListItem>
-                                                                    ))}
-                                                                </List>
-                                                            </Box>
-                                                        )}
-                                                    </>
-                                                )}
-                                                {}
-
-                                                {}
-                                                {gap.riferimentiKb && gap.riferimentiKb.length > 0 && (
-                                                    <>
-                                                        <Divider sx={{ my: 1 }} />
-                                                        <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mt: 1 }}>
-                                                            Contesto dalla KB (usato da AI):
-                                                        </Typography>
-                                                        <List dense disablePadding sx={{ maxHeight: 100, overflow: 'auto', fontSize: '0.75rem' }}>
-                                                            {gap.riferimentiKb.map((ref, idx) => (
-                                                                <ListItem key={idx} sx={{ py: 0, alignItems: 'flex-start' }}>
-                                                                    <Tooltip title={`ID Chunk: ${ref.chunkId} - Similarità: ${ref.similarita?.toFixed(3)}`}>
-                                                                        <ListItemText 
-                                                                            primaryTypographyProps={{ variant: 'caption', fontStyle: 'italic' }}
-                                                                            primary={`- ${ref.estrattoTesto || 'N/D'}`} 
-                                                                        />
-                                                                    </Tooltip>
-                                                                </ListItem>
-                                                            ))}
-                                                        </List>
-                                                    </>
-                                                )}
-                                                {}
-
-                                                {}
-                                                {gap.ultimaAnalisiCauseRadice && (
-                                                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1, fontStyle: 'italic' }}>
-                                                        Ultima analisi cause radice: {new Date(gap.ultimaAnalisiCauseRadice).toLocaleDateString()}
-                                                        <Button size="small" onClick={() => { 
-                                                            setCurrentRootCauses(gap.causeRadiceSuggeriteAI || []);
-                                                            setShowRootCauseModal(true);
-                                                            setRootCauseError(null); // Resetta errori precedenti
-                                                         }}> (Vedi) </Button>
-                                                    </Typography>
-                                                )}
-
-                                            </CardContent>
-                                            {}
-                                            <Box sx={{ p: 1, pt: 0, mt: 'auto', display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                                                {}
-                                                <Button variant="outlined" size="small" disabled> Dettagli </Button>
-
-                                                {}
-                                                <Tooltip title="Analizza Cause Radice con AI">
-                                                    <span> {}
-                                                        <IconButton
-                                                            size="small"
-                                                            color="secondary" // O un altro colore che preferisci
-                                                            onClick={() => handleAnalyzeRootCause(gap)}
-                                                            disabled={analyzingRootCauseFor === gap._id || !selectedChecklistId} // Disabilita se già in analisi per questo gap o se nessuna checklist è selezionata
-                                                        >
-                                                            {analyzingRootCauseFor === gap._id ? (
-                                                                <CircularProgress size={18} color="inherit" />
-                                                            ) : (
-
-                                                                <TroubleshootIcon fontSize="small" />
                                                             )}
-                                                        </IconButton>
-                                                    </span>
-                                                </Tooltip>
-                                                {}
+                                                        </Box>
+                                                    )}
 
-                                                {}
-                                                <Button
-                                                    variant="contained"
-                                                    size="small"
-                                                    component={RouterLink}
-                                                    to={`/progettazione/interventi`} // Assicurati che il path sia corretto per creare un intervento basato su un gap
-                                                    state={{ prefillFromGap: gap }} // Passa dati del gap per precompilare il form intervento
-                                                >
-                                                    Crea Intervento
-                                                </Button>
-                                            </Box>
-                                        </Card>
-                                    </Grid>
-                                ))}
+                                                    {gap.prioritaRisoluzioneAI && (
+                                                        <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                                            Priorità Risoluzione (AI): 
+                                                            <Chip 
+                                                                label={getRiskLabel(gap.prioritaRisoluzioneAI)} 
+                                                                color={getRiskColor(gap.prioritaRisoluzioneAI)} 
+                                                                size="small" 
+                                                                sx={{ ml: 0.5, textTransform: 'capitalize' }}
+                                                            />
+                                                        </Typography>
+                                                    )}
+
+                                                    {gap.riferimentiNormativiSpecificiAI && gap.riferimentiNormativiSpecificiAI.length > 0 && (
+                                                        <Box sx={{ mb: 1 }}>
+                                                            <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>Riferimenti Normativi (AI):</Typography>
+                                                            <List dense disablePadding sx={{ fontSize: '0.75rem', pl: 1 }}>
+                                                                {gap.riferimentiNormativiSpecificiAI.map((ref, idx) => (
+                                                                    <ListItem key={`norm-ai-${idx}`} sx={{ py: 0 }}><ListItemText primaryTypographyProps={{ variant: 'caption', fontStyle: 'italic' }} primary={`• ${ref}`} /></ListItem>
+                                                                ))}
+                                                            </List>
+                                                        </Box>
+                                                    )}
+
+                                                    {gap.suggerimenti_ai && gap.suggerimenti_ai.length > 0 && (
+                                                        <Box sx={{ mb: 1 }}>
+                                                            <Typography variant="caption" display="block" sx={{ fontWeight: 'bold' }}>Suggerimenti Intervento (AI):</Typography>
+                                                            <List dense disablePadding sx={{ fontSize: '0.75rem', pl: 1 }}>
+                                                                {gap.suggerimenti_ai.map((sugg, idx) => (
+                                                                    <ListItem key={`sugg-ai-${idx}`} sx={{ py: 0 }}><ListItemText primaryTypographyProps={{ variant: 'caption' }} primary={`• ${sugg}`} /></ListItem>
+                                                                ))}
+                                                            </List>
+                                                        </Box>
+                                                    )}
+                                                </>
+                                            )}
+                                            
+                                            {gap.riferimentiKb && gap.riferimentiKb.length > 0 && (
+                                                <>
+                                                    <Divider sx={{ my: 1 }} />
+                                                    <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mt: 1 }}>
+                                                        Contesto dalla KB (usato da AI per arricchimento):
+                                                    </Typography>
+                                                    <List dense disablePadding sx={{ maxHeight: 100, overflow: 'auto', fontSize: '0.75rem' }}>
+                                                        {gap.riferimentiKb.map((ref, idx) => (
+                                                            <ListItem key={`kbref-${gap._id}-${idx}`} sx={{ py: 0, alignItems: 'flex-start' }}>
+                                                                <Tooltip title={`ID Chunk: ${ref.chunkId || 'N/A'} - Similarità: ${ref.similarita?.toFixed(3) || 'N/A'} - Fonte: ${ref.documentoFonte || 'N/A'}`}>
+                                                                    <ListItemText 
+                                                                        primaryTypographyProps={{ variant: 'caption', fontStyle: 'italic' }}
+                                                                        primary={`• ${ref.estrattoTesto || 'N/D'}`} 
+                                                                    />
+                                                                </Tooltip>
+                                                            </ListItem>
+                                                        ))}
+                                                    </List>
+                                                </>
+                                            )}
+
+                                            {gap.ultimaAnalisiCauseRadice && (
+                                                <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1, fontStyle: 'italic' }}>
+                                                    Ultima analisi cause radice: {new Date(gap.ultimaAnalisiCauseRadice).toLocaleDateString()}
+                                                    <Button size="small" onClick={() => { 
+                                                        setCurrentRootCauses(gap.causeRadiceSuggeriteAI || []);
+                                                        setShowRootCauseModal(true);
+                                                        setRootCauseError(null);
+                                                     }}> (Vedi) </Button>
+                                                </Typography>
+                                            )}
+
+                                        </CardContent>
+                                        <Box sx={{ p: 1, pt: 0, mt: 'auto', display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                            <Button variant="outlined" size="small" disabled> Dettagli </Button>
+
+                                            <Tooltip title="Analizza Cause Radice con AI">
+                                                <span>
+                                                    <IconButton
+                                                        size="small"
+                                                        color="secondary"
+                                                        onClick={() => handleAnalyzeRootCause(gap)}
+                                                        disabled={analyzingRootCauseFor === gap._id || !selectedChecklistId}
+                                                    >
+                                                        {analyzingRootCauseFor === gap._id ? (
+                                                            <CircularProgress size={18} color="inherit" />
+                                                        ) : (
+
+                                                            <TroubleshootIcon fontSize="small" />
+                                                        )}
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
+
+                                            <Button
+                                                variant="contained"
+                                                size="small"
+                                                component={RouterLink}
+                                                to={`/progettazione/interventi`}
+                                                state={{ prefillFromGap: gap }}
+                                            >
+                                                Crea Intervento
+                                            </Button>
+                                        </Box>
+                                    </Card>
+                                </Grid>
+                            ))}
                         </Grid>
                     )}
                  </Paper>
              )}
 
-            {}
             <RootCauseModal
                 open={showRootCauseModal}
                 onClose={() => { setShowRootCauseModal(false); setCurrentRootCauses([]); setRootCauseError(null); }}

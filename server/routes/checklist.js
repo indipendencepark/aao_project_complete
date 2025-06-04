@@ -45,7 +45,7 @@ router.get("/", (async (req, res) => {
 }));
 
 router.post("/", (async (req, res) => {
-  console.log(`Richiesta POST /api/checklist (CON SELEZIONE E MOTIVAZIONE AI) con body:`, req.body);
+  console.log(`Richiesta POST /api/checklist (CON SELEZIONE E MOTIVAZIONE AI) con body:`, JSON.stringify(req.body, null, 2));
   const {nome: nome, descrizione: descrizione, cliente: cliente} = req.body;
 
     const CORE_QUESTION_ITEM_IDS = global.CORE_QUESTION_ITEM_IDS || [];
@@ -53,6 +53,9 @@ router.post("/", (async (req, res) => {
     return res.status(400).json({
       message: "Nome checklist e nome cliente sono obbligatori."
     });
+  }
+  if (!cliente.dimensioneStimata || !cliente.complessita) {
+    console.warn("Profilo cliente incompleto: dimensioneStimata o complessita mancanti.");
   }
 
     try {
@@ -71,7 +74,7 @@ router.post("/", (async (req, res) => {
 
         const domandeSelezionateInfo = await selectPertinentQuestionsAI(cliente, tutteDomandeTemplate, 75);
     if (!domandeSelezionateInfo || domandeSelezionateInfo.length === 0) {
-      console.warn("L'AI non ha selezionato domande o c'è stato un errore. La checklist potrebbe essere vuota.");
+      console.warn("L'AI non ha selezionato domande o c'è stato un errore. La checklist potrebbe essere vuota o contenere solo domande fallback.");
 
         }
     const answersDaSalvare = [];
@@ -200,68 +203,131 @@ router.get("/:id", (async (req, res) => {
   console.log(`>>> [${(new Date).toISOString()}] FINE GET /api/checklist/:id`);
 }));
 
-router.put("/:id", (async (req, res) => {
-  console.log(`Richiesta PUT /api/checklist/${req.params.id} (non protetta per test) con body:`, req.body);
-  const checklistId = req.params.id;
+router.put("/:id", async (req, res) => {
+    console.log(`Richiesta PUT /api/checklist/${req.params.id} con body:`, req.body);
+    const checklistId = req.params.id;
 
-    if (!mongoose.Types.ObjectId.isValid(checklistId)) return res.status(400).json({
-    message: "ID Checklist non valido."
-  });
-  const {nome: nome, descrizione: descrizione, cliente: cliente, stato: stato} = req.body;
-  const campiDaAggiornare = {};
-  if (nome !== undefined) campiDaAggiornare.nome = nome;
-  if (descrizione !== undefined) campiDaAggiornare.descrizione = descrizione;
-  if (cliente !== undefined) campiDaAggiornare.cliente = cliente;
-  if (stato !== undefined) campiDaAggiornare.stato = stato;
-  let triggerGapGeneration = false;
-  try {
-
-    if (stato === "completata") {
-      const checklistPrecedente = await Checklist.findById(checklistId).select("stato");
-      if (checklistPrecedente && checklistPrecedente.stato !== "completata") {
-        campiDaAggiornare.data_compilazione = Date.now();
-        triggerGapGeneration = true;
-        console.log(`Checklist ${checklistId} marcata come completata. Trigger generazione Gap.`);
-      } else {
-        console.log(`Checklist ${checklistId} era già completata o non trovata. Nessun trigger Gap.`);
-      }
-    } else if (stato && stato !== "completata") {
-      campiDaAggiornare.data_compilazione = null;
-      campiDaAggiornare.numero_gap_rilevati = 0;
-      console.log(`Checklist ${checklistId} impostata a stato ${stato}. Azzero data completamento e conteggio gap.`);
-      await Gap.deleteMany({
-        checklist_id: checklistId
-      });
-      console.log(`Gap associati a checklist ${checklistId} eliminati perché è stata riaperta.`);
+    if (!mongoose.Types.ObjectId.isValid(checklistId)) {
+        return res.status(400).json({ message: "ID Checklist non valido." });
     }
-    const checklistAggiornata = await Checklist.findByIdAndUpdate(checklistId, {
-      $set: campiDaAggiornare
-    }, {
-      new: true,
-      runValidators: true
-    });
-    if (!checklistAggiornata) return res.status(404).json({
-      message: "Checklist non trovata."
-    });
 
-        if (triggerGapGeneration) {
-      generateGapsForChecklist(checklistAggiornata._id).then((count => console.log(`Generazione Gap per ${checklistAggiornata._id} completata in background. Generati: ${count}`))).catch((err => console.error(`Errore background generazione Gap per ${checklistAggiornata._id}:`, err)));
+    const { nome, descrizione, cliente, stato } = req.body;
+    const campiDaAggiornare = {};
+    if (nome !== undefined) campiDaAggiornare.nome = nome;
+    if (descrizione !== undefined) campiDaAggiornare.descrizione = descrizione;
+    
+    let triggerAsyncGapGeneration = false;
+
+    try {
+        const checklistPrecedente = await Checklist.findById(checklistId).select("stato gapGenerationStatus");
+
+        if (stato !== undefined) {
+            campiDaAggiornare.stato = stato;
+            if (stato === "completata") {
+                if (checklistPrecedente && checklistPrecedente.stato !== "completata") {
+                    campiDaAggiornare.data_compilazione = Date.now();
+                    campiDaAggiornare.gapGenerationStatus = 'PENDING'; // Imposta PENDING
+                    campiDaAggiornare.gapGenerationProgress = 0;
+                    campiDaAggiornare.gapGenerationMessage = "Analisi gap in attesa di avvio.";
+                    campiDaAggiornare.lastGapGenerationAttempt = Date.now();
+                    triggerAsyncGapGeneration = true;
+                    console.log(`Checklist ${checklistId} marcata come completata. Trigger generazione Gap ASINCRONA.`);
+                } else if (checklistPrecedente && checklistPrecedente.stato === "completata" && checklistPrecedente.gapGenerationStatus !== 'COMPLETED' && checklistPrecedente.gapGenerationStatus !== 'PROCESSING') {
+                    campiDaAggiornare.gapGenerationStatus = 'PENDING';
+                    campiDaAggiornare.gapGenerationProgress = 0;
+                    campiDaAggiornare.gapGenerationMessage = "Nuovo tentativo di analisi gap in attesa.";
+                    campiDaAggiornare.lastGapGenerationAttempt = Date.now();
+                    triggerAsyncGapGeneration = true;
+                    console.log(`Checklist ${checklistId} già completata, ma ritento generazione Gap ASINCRONA.`);
+                } else {
+                     console.log(`Checklist ${checklistId} era già completata e processata (o in processamento). Nessun trigger Gap.`);
+                }
+            } else if (stato && stato !== "completata") {
+                campiDaAggiornare.data_compilazione = null;
+                campiDaAggiornare.numero_gap_rilevati = 0;
+                campiDaAggiornare.gapGenerationStatus = 'IDLE'; // Resetta lo stato della generazione gap
+                campiDaAggiornare.gapGenerationProgress = 0;
+                campiDaAggiornare.gapGenerationMessage = null;
+                console.log(`Checklist ${checklistId} impostata a stato ${stato}. Azzero data completamento, conteggio gap e stato generazione.`);
+                await Gap.deleteMany({ checklist_id: checklistId });
+                console.log(`Gap associati a checklist ${checklistId} eliminati perché è stata riaperta.`);
+            }
+        }
+
+        const checklistAggiornata = await Checklist.findByIdAndUpdate(
+            checklistId,
+            { $set: campiDaAggiornare },
+            { new: true, runValidators: true }
+        );
+
+        if (!checklistAggiornata) {
+            return res.status(404).json({ message: "Checklist non trovata." });
+        }
+
+        if (triggerAsyncGapGeneration) {
+            generateGapsForChecklist(checklistAggiornata._id)
+                .then(({ totalGapsToProcess, gapsSuccessfullyEnriched }) => {
+                    console.log(`Processo ASINCRONO generazione Gap per ${checklistAggiornata._id} terminato (da then). Processati: ${totalGapsToProcess}, Arricchiti: ${gapsSuccessfullyEnriched}`);
+                })
+                .catch(err => {
+                    console.error(`Errore nel processo ASINCRONO generazione Gap per ${checklistAggiornata._id} (da catch):`, err);
+                    Checklist.findByIdAndUpdate(checklistAggiornata._id, {
+                        $set: {
+                            gapGenerationStatus: 'FAILED',
+                            gapGenerationMessage: `Errore background: ${err.message}`,
+                            gapGenerationProgress: 100
+                        }
+                    }).catch(updateErr => console.error("Errore nell'aggiornare lo stato FAILED della checklist:", updateErr));
+                });
+            
+            res.json({
+                message: "Checklist aggiornata. Analisi gap avviata in background.",
+                data: checklistAggiornata,
+                gapGenerationInitiated: true
+            });
+        } else {
+            res.json({
+                message: "Checklist aggiornata con successo.",
+                data: checklistAggiornata,
+                gapGenerationInitiated: false
+            });
+        }
+    } catch (err) {
+        console.error(`Errore in PUT /api/checklist/${checklistId}:`, err.message);
+        if (err.name === "ValidationError") {
+            return res.status(400).json({ message: "Errore di validazione", errors: err.errors });
+        }
+        res.status(500).json({ message: "Errore del server durante l'aggiornamento della checklist." });
     }
-    res.json({
-      message: "Checklist aggiornata con successo",
-      data: checklistAggiornata
-    });
-  } catch (err) {
-    console.error(`Errore in PUT /api/checklist/${checklistId}:`, err.message);
-    if (err.name === "ValidationError") return res.status(400).json({
-      message: "Errore di validazione",
-      errors: err.errors
-    });
-    res.status(500).json({
-      message: "Errore del server durante l'aggiornamento della checklist."
-    });
-  }
-}));
+});
+
+// NUOVA ROUTE per lo stato della generazione gap
+router.get("/:id/gap-generation-status", async (req, res) => {
+    const checklistId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(checklistId)) {
+        return res.status(400).json({ message: "ID Checklist non valido." });
+    }
+    try {
+        const checklist = await Checklist.findById(checklistId)
+            .select("gapGenerationStatus gapGenerationProgress gapGenerationMessage numero_gap_rilevati stato");
+        if (!checklist) {
+            return res.status(404).json({ message: "Checklist non trovata." });
+        }
+        res.json({
+            message: "Stato generazione gap recuperato.",
+            data: {
+                status: checklist.gapGenerationStatus,
+                progress: checklist.gapGenerationProgress,
+                message: checklist.gapGenerationMessage,
+                gapsFound: checklist.numero_gap_rilevati,
+                checklistState: checklist.stato
+            }
+        });
+    } catch (error) {
+        console.error("Errore recupero stato generazione gap:", error);
+        res.status(500).json({ message: "Errore server recupero stato." });
+    }
+});
 
 router.put("/:id/answers/:itemId", (async (req, res) => {
   console.log(`Richiesta PUT /api/checklist/${req.params.id}/answers/${req.params.itemId} (non protetta per test) con body:`, req.body);

@@ -1,51 +1,48 @@
-
 const {Checklist: Checklist, Gap: Gap} = require("../models/diagnosi");
 
 const gapRules = require("../knowledge/gapRules");
 
 const {enrichGapWithAI: enrichGapWithAI} = require("./gapEnricherAI");
 
- const generateGapsForChecklist = async checklistId => {
-  console.log(`>>> Avvio generazione/arricchimento Gap per Checklist ID: ${checklistId}`);
-  let gapsGeneratiCount = 0;
-  let gapsArricchitiCount = 0;
+const generateGapsForChecklist = async checklistId => {
+  console.log(`>>> Avvio generazione/arricchimento Gap ASINCRONO per Checklist ID: ${checklistId}`);
+  let gapsRuleBasedCount = 0;
+  let gapsSuccessfullyEnrichedCount = 0;
+  let finalStatus = 'COMPLETED';
+  let finalMessage = 'Analisi gap completata con successo.';
+
   try {
+    await Checklist.findByIdAndUpdate(checklistId, {
+      $set: { gapGenerationStatus: 'PROCESSING', gapGenerationProgress: 5, gapGenerationMessage: 'Caricamento dati checklist...' }
+    });
 
     const checklist = await Checklist.findById(checklistId);
     if (!checklist) {
-      console.warn(`Checklist ${checklistId} non trovata. Generazione Gap saltata.`);
-      return 0;
+      console.warn(`Checklist ${checklistId} non trovata. Processo interrotto.`);
+      throw new Error("Checklist non trovata durante la generazione gap.");
     }
-    if (checklist.stato !== "completata") {
-      console.warn(`Checklist ${checklistId} non è completata. Generazione Gap saltata.`);
-      console.log(`Checklist ${checklistId} non è completata (stato: ${checklist.stato}). Elimino eventuali Gap precedenti.`);
-      await Gap.deleteMany({
-        checklist_id: checklistId
-      });
-      await Checklist.findByIdAndUpdate(checklistId, {
-        numero_gap_rilevati: 0
-      });
-      return 0;
-    }
+
     const cliente = checklist.cliente;
     const checklistAnswers = checklist.answers;
 
-        console.log(`>>> Checklist ${checklistId} è completata. Elimino Gap preesistenti...`);
+    await Checklist.findByIdAndUpdate(checklistId, {
+      $set: { gapGenerationProgress: 10, gapGenerationMessage: 'Eliminazione gap precedenti...' }
+    });
     const deleteResult = await Gap.deleteMany({
       checklist_id: checklistId
     });
     console.log(`>>> Eliminati ${deleteResult.deletedCount} Gap preesistenti per checklist ${checklistId}.`);
 
-        const gapsDaArricchire = [];
+    const gapsDaCreareEDArricchire = [];
 
-        for (const answer of checklistAnswers) {
+    for (const answer of checklistAnswers) {
       if (!answer || !answer.itemId) continue;
       const regoleApplicabili = gapRules.filter((rule => rule.itemId === answer.itemId));
       for (const regola of regoleApplicabili) {
         if (regola.triggerAnswers.includes(String(answer.risposta))) {
           const gapDetails = regola.getGapDetails(answer, cliente);
           if (gapDetails && gapDetails.descrizione && gapDetails.livello_rischio) {
-            gapsDaArricchire.push({
+            gapsDaCreareEDArricchire.push({
               checklist_id: checklistId,
               item_id: answer.itemId,
               domandaText: answer.domandaText || "N/D",
@@ -66,66 +63,104 @@ const {enrichGapWithAI: enrichGapWithAI} = require("./gapEnricherAI");
       }
     }
 
-        const savedGapsBase = [];
-    if (gapsDaArricchire.length > 0) {
-      try {
+    gapsRuleBasedCount = gapsDaCreareEDArricchire.length;
+    await Checklist.findByIdAndUpdate(checklistId, {
+      $set: { 
+        numero_gap_rilevati: gapsRuleBasedCount,
+        gapGenerationProgress: 20, 
+        gapGenerationMessage: `${gapsRuleBasedCount} potenziali gap identificati. Inizio salvataggio base...` 
+      }
+    });
 
-        const insertedDocs = await Gap.insertMany(gapsDaArricchire.map((gapData => new Gap(gapData))));
+    const savedGapsBase = [];
+    if (gapsDaCreareEDArricchire.length > 0) {
+      try {
+        const insertedDocs = await Gap.insertMany(gapsDaCreareEDArricchire.map((gapData => new Gap(gapData))));
         savedGapsBase.push(...insertedDocs);
         console.log(`>>> Salvati ${insertedDocs.length} Gap Rule-Based iniziali per checklist ${checklistId}.`);
-        gapsGeneratiCount = insertedDocs.length;
+        await Checklist.findByIdAndUpdate(checklistId, {
+          $set: { gapGenerationProgress: 30, gapGenerationMessage: 'Gap base salvati. Inizio arricchimento AI...' }
+        });
       } catch (dbError) {
         console.error("Errore durante il salvataggio iniziale dei Gap rule-based:", dbError);
-
-                await Checklist.findByIdAndUpdate(checklistId, {
-          $set: {
-            numero_gap_rilevati: 0
-          }
-        });
-        return 0;
+        throw new Error(`Salvataggio DB fallito: ${dbError.message}`);
       }
+    } else {
+      console.log(">>> Nessun gap rule-based da creare.");
+      await Checklist.findByIdAndUpdate(checklistId, {
+        $set: { gapGenerationProgress: 100, gapGenerationStatus: 'COMPLETED', gapGenerationMessage: 'Nessun gap rilevato dalle regole.' }
+      });
+      return { totalGapsToProcess: 0, gapsSuccessfullyEnriched: 0 };
     }
 
-        if (savedGapsBase.length > 0) {
+    if (savedGapsBase.length > 0) {
       console.log(`>>> Avvio Arricchimento AI per ${savedGapsBase.length} gap...`);
+      const totalToEnrich = savedGapsBase.length;
+      let enrichedSoFar = 0;
+
       for (const gapDocument of savedGapsBase) {
+        enrichedSoFar++;
+        const currentProgress = 30 + Math.round((enrichedSoFar / totalToEnrich) * 65);
+        await Checklist.findByIdAndUpdate(checklistId, {
+          $set: { 
+            gapGenerationProgress: currentProgress, 
+            gapGenerationMessage: `Arricchimento AI del gap ${enrichedSoFar}/${totalToEnrich} (ID: ${gapDocument.item_id})...`
+          }
+        });
 
         try {
-
           const enrichedData = await enrichGapWithAI(gapDocument, cliente, checklistAnswers);
-          if (enrichedData) {
-
+          if (enrichedData && enrichedData.arricchitoConAI) {
             await Gap.findByIdAndUpdate(gapDocument._id, {
               $set: enrichedData
             });
-            gapsArricchitiCount++;
+            gapsSuccessfullyEnrichedCount++;
             console.log(`--- Gap ${gapDocument.item_id} arricchito con successo e aggiornato.`);
           } else {
-            console.warn(`--- Arricchimento AI per Gap ${gapDocument.item_id} non ha prodotto risultati validi (null).`);
+            console.warn(`--- Arricchimento AI per Gap ${gapDocument.item_id} NON completato o fallito. Dati base conservati.`);
+            await Gap.findByIdAndUpdate(gapDocument._id, { $set: { arricchitoConAI: false } });
           }
         } catch (enrichError) {
-          console.error(`!!! Errore durante l'arricchimento AI per Gap ${gapDocument.item_id} (ID: ${gapDocument._id}):`, enrichError.message);
+          console.error(`!!! ERRORE CRITICO durante l'arricchimento AI per Gap ${gapDocument.item_id} (ID: ${gapDocument._id}):`, enrichError.message);
         }
-
-                await new Promise((resolve => setTimeout(resolve, 100)));
+        if (totalToEnrich > 1) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
       }
-      console.log(`>>> Arricchimento AI completato. Gap arricchiti: ${gapsArricchitiCount}/${savedGapsBase.length}`);
+      finalMessage = `Arricchimento AI completato. Gap arricchiti: ${gapsSuccessfullyEnrichedCount}/${totalToEnrich}. Gap totali identificati: ${gapsRuleBasedCount}.`;
+      console.log(`>>> ${finalMessage}`);
     } else {
+      finalMessage = "Nessun gap identificato dalle regole, arricchimento AI saltato.";
       console.log(">>> Nessun gap rule-based generato, arricchimento AI saltato.");
     }
-
-        await Checklist.findByIdAndUpdate(checklistId, {
+    
+    await Checklist.findByIdAndUpdate(checklistId, {
       $set: {
-        numero_gap_rilevati: gapsGeneratiCount
+        gapGenerationStatus: finalStatus,
+        gapGenerationProgress: 100,
+        gapGenerationMessage: finalMessage,
+        numero_gap_rilevati: gapsRuleBasedCount
       }
     });
-    console.log(`>>> Conteggio Gap aggiornato su Checklist ${checklistId}: ${gapsGeneratiCount}`);
-    return gapsGeneratiCount;
+    return { totalGapsToProcess: gapsRuleBasedCount, gapsSuccessfullyEnriched: gapsSuccessfullyEnrichedCount };
+
   } catch (error) {
     console.error(`!!! Errore GRAVE durante la generazione/arricchimento dei Gap per ${checklistId}:`, error);
-    return -1;
-
+    finalStatus = 'FAILED';
+    finalMessage = `Errore grave: ${error.message}`;
+    try {
+      await Checklist.findByIdAndUpdate(checklistId, {
+        $set: {
+          gapGenerationStatus: finalStatus,
+          gapGenerationMessage: finalMessage,
+          gapGenerationProgress: 100
+        }
+      });
+    } catch (updateErr) {
+      console.error("Errore nell'aggiornare lo stato FAILED della checklist dopo errore grave:", updateErr);
     }
+    throw error; 
+  }
 };
 
 module.exports = {

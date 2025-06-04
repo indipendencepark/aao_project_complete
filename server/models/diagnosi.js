@@ -116,7 +116,6 @@ const ChecklistSchema = new Schema({
     index: true
   },
   cliente: {
-
     nome: {
       type: String,
       required: true
@@ -228,7 +227,35 @@ const ChecklistSchema = new Schema({
     criticitaPercepite: {
       type: String,
       trim: true
+    },
+
+    // --- NUOVI CAMPI PER PROFILAZIONE AVANZATA ---
+    settoreATECOSpecifico: {
+      type: String,
+      trim: true
+    },
+    modelloBusiness: {
+      type: String,
+      trim: true,
+      // enum: ['B2B', 'B2C', 'Manifatturiero', 'Servizi', 'Commerciale', 'Misto', 'Altro']
+    },
+    complessitaOperativa: {
+      type: String,
+      // enum: ['Bassa', 'Media', 'Alta', 'Molto Alta']
+    },
+    strutturaProprietaria: {
+      type: String,
+      // enum: ['Familiare', 'Manageriale', 'Mista', 'Fondo Investimento', 'Pubblica']
+    },
+    livelloInternazionalizzazione: {
+      type: String,
+      // enum: ['Nessuna', 'Solo Export', 'Solo Import', 'Export/Import', 'Sedi Estere', 'Globale']
+    },
+    faseCicloVita: {
+      type: String,
+      // enum: ['Startup', 'Crescita', 'Maturita', 'Declino', 'Ristrutturazione']
     }
+    // --- FINE NUOVI CAMPI ---
   },
   answers: [ ChecklistItemAnswerSchema ],
 
@@ -240,6 +267,26 @@ const ChecklistSchema = new Schema({
     type: Number,
     default: 0,
     index: true
+  },
+
+  // NUOVI CAMPI PER TRACCIAMENTO GENERAZIONE GAP
+  gapGenerationStatus: {
+    type: String,
+    enum: ['IDLE', 'PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', null], // IDLE: stato iniziale
+    default: 'IDLE'
+  },
+  gapGenerationProgress: { // Percentuale 0-100
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
+  },
+  gapGenerationMessage: { // Per eventuali messaggi o errori
+    type: String,
+    default: null
+  },
+  lastGapGenerationAttempt: {
+    type: Date
   },
 
   compilata_da_id: {

@@ -111,16 +111,18 @@ loadFullKnowledgeBase();
   const systemPrompt = `Sei un consulente esperto in adeguati assetti organizzativi, amministrativi e contabili per imprese italiane, con profonda conoscenza della normativa (Codice Civile art. 2086, Codice della Crisi d'Impresa) e delle best practice di settore. Il tuo compito è analizzare l'intera base di conoscenza fornita, il profilo di un'azienda cliente, e un elenco di domande candidate, per selezionare quelle più pertinenti.`;
   let userPrompt = `**INTERA BASE DI CONOSCENZA (Knowledge Base):**\n`;
   userPrompt += `"""\n${kbContent}\n"""\n\n`;
-  userPrompt += `**PROFILO AZIENDALE DA VALUTARE:**\n`;
-  userPrompt += `- Nome Azienda (per contesto): ${clienteProfilo.nome || "N/D"}\n`;
+  userPrompt += `**PROFILO AZIENDALE DA VALUTARE (Dettagliato):**\n`;
+  userPrompt += `- Denominazione: ${clienteProfilo.nome || "N/D"}\n`;
+  userPrompt += `- Forma Giuridica: ${clienteProfilo.formaGiuridica || "N/D"}\n`;
+  userPrompt += `- Dimensione Stimata (Consulente): ${clienteProfilo.dimensioneStimata || "Non specificata"}\n`;
+  userPrompt += `- Complessità (Consulente): ${clienteProfilo.complessita || "Non specificata"}\n`;
+  userPrompt += `- Settore (Generico): ${clienteProfilo.settore || "Non specificato"}\n`;
   userPrompt += `- Settore ATECO Specifico: ${clienteProfilo.settoreATECOSpecifico || "Non specificato"}\n`;
   userPrompt += `- Modello Business: ${clienteProfilo.modelloBusiness || "Non specificato"}\n`;
-  userPrompt += `- Complessità Operativa: ${clienteProfilo.complessitaOperativa || "Non specificata"}\n`;
+  userPrompt += `- Complessità Operativa (Specifica): ${clienteProfilo.complessitaOperativa || "Non specificata"}\n`;
   userPrompt += `- Struttura Proprietaria: ${clienteProfilo.strutturaProprietaria || "Non specificata"}\n`;
   userPrompt += `- Livello Internazionalizzazione: ${clienteProfilo.livelloInternazionalizzazione || "Non specificato"}\n`;
   userPrompt += `- Fase Ciclo di Vita Azienda: ${clienteProfilo.faseCicloVita || "Non specificata"}\n`;
-  userPrompt += `- Dimensione Stimata (Consulente): ${clienteProfilo.dimensioneStimata || "Non specificata"}\n`;
-  userPrompt += `- Complessità (Consulente): ${clienteProfilo.complessita || "Non specificata"}\n`;
   userPrompt += `- Obiettivi Strategici Dichiarati: ${clienteProfilo.obiettiviStrategici || "Non specificati"}\n`;
   userPrompt += `- Criticità Percepite Dichiarate: ${clienteProfilo.criticitaPercepite || "Non specificate"}\n\n`;
   userPrompt += `**DOMANDE "CORE" GIÀ PRE-SELEZIONATE (DA NON RIPETERE):**\n`;
@@ -131,13 +133,13 @@ loadFullKnowledgeBase();
     userPrompt += `${q.itemId};${q.domanda};${q.area};${q.sottoArea};${q.tags}\n`;
   }));
   userPrompt += `\n**ISTRUZIONI PER LA SELEZIONE:**\n`;
-  userPrompt += `1. Basandoti sulla TUA COMPRENSIONE DELL'INTERA BASE DI CONOSCENZA fornita e sul profilo aziendale, identifica i rischi normativi, operativi e strategici specifici per questa azienda.\n`;
-  userPrompt += `2. Dalla "LISTA DI DOMANDE CANDIDATE", seleziona le **${numberOfAIChoicesNeeded} domande più EFFICACI e PERTINENTI** per investigare tali rischi e valutare l'adeguatezza degli assetti dell'azienda.\n`;
-  userPrompt += `3. Privilegia domande che offrano il maggior valore diagnostico nel contesto specifico. Considera le interconnessioni tra aree aziendali suggerite dalla Knowledge Base.\n`;
-  userPrompt += `4. Fornisci una BREVE (massimo 1-2 frasi) motivazione per ciascuna domanda selezionata, spiegando perché è particolarmente rilevante per QUESTA azienda alla luce della Knowledge Base e del suo profilo.\n`;
+  userPrompt += `1. Basandoti sulla TUA COMPRENSIONE DELL'INTERA BASE DI CONOSCENZA e sul **profilo aziendale dettagliato fornito**, identifica i rischi e le aree di indagine prioritarie per questa specifica azienda.\n`;
+  userPrompt += `2. Dalla "LISTA DI DOMANDE CANDIDATE", seleziona le **${numberOfAIChoicesNeeded} domande più PERTINENTI E UTILI** per questo contesto.\n`;
+  userPrompt += `3. Considera come i campi specifici del profilo (es. modelloBusiness, livelloInternazionalizzazione, faseCicloVita) influenzano la rilevanza delle domande.\n`;
+  userPrompt += `4. Fornisci una BREVE (massimo 1-2 frasi) motivazione per ciascuna domanda selezionata, spiegando perché è particolarmente rilevante per **QUESTA specifica azienda**, alla luce della KB e del suo **profilo dettagliato**.\n`;
   userPrompt += `5. Ordina le domande che hai selezionato per Area tematica (Org, Admin, Acct, Crisi) e poi per importanza decrescente all'interno di ciascuna area.\n`;
   userPrompt += `6. Restituisci il risultato ESCLUSIVAMENTE come un oggetto JSON valido con la seguente struttura: {"domande_aggiuntive_selezionate": [{"itemId": "ID_DOMANDA_CANDIDATA", "motivazione_selezione_ai": "Tua motivazione specifica e concisa..."}]}. Assicurati che gli itemId siano corretti e presi dalla lista delle candidate.\n`;
-  console.log(`>>> Chiamata AI (${MODEL_FOR_QUESTION_SELECTION}) con FULL KB per ${numberOfAIChoicesNeeded} domande aggiuntive...`);
+  console.log(`>>> Chiamata AI (${MODEL_FOR_QUESTION_SELECTION}) con FULL KB e profilo cliente DETTAGLIATO per ${numberOfAIChoicesNeeded} domande aggiuntive...`);
 
     try {
     const completion = await openai.chat.completions.create({
@@ -174,7 +176,7 @@ loadFullKnowledgeBase();
     console.log(`>>> Totale domande per la checklist: ${finalSelectedQuestions.length}`);
     return finalSelectedQuestions;
   } catch (error) {
-    console.error(`!!! ERRORE chiamata API OpenAI (con FULL KB):`, error);
+    console.error(`!!! ERRORE chiamata API OpenAI (con FULL KB e profilo avanzato):`, error);
     console.warn("Fallback errore AI (con FULL KB): seleziono domande candidate rimanenti.");
     const additionalFallback = candidateQuestionsForAI.slice(0, numberOfAIChoicesNeeded).map((q => ({
       itemId: q.itemId,
