@@ -508,6 +508,34 @@ const ReportDiagnosticoSchema = new Schema({
         interventoSuggerito: String
     }],
     
+    // --- NUOVA SEZIONE PER ANALISI CAUSE RADICE AGGREGATE ---
+    analisiCauseRadiceAggregate: {
+        dataUltimaAnalisi: { type: Date },
+        statusAnalisi: { type: String, enum: ['IDLE', 'PENDING', 'PROCESSING', 'COMPLETED', 'FAILED'], default: 'IDLE' },
+        messaggioAnalisi: { type: String },
+        causeIdentificate: [{
+            _id: false, // Non crea un ObjectId separato per ogni causa
+            idCausa: { type: String, default: () => new mongoose.Types.ObjectId().toString() }, // ID univoco generato
+            testoCausa: { type: String, required: true },
+            categoriaCausa: { type: String }, // Es. Processi, Cultura, Sistemi, Governance, Persone, Organizzazione
+            descrizioneDettagliataAI: { type: String }, // Spiegazione dell'AI
+            rilevanzaComplessiva: {
+                type: String,
+                enum: ['critica', 'alta', 'media', 'bassa', null], // Aggiunto null se non determinabile
+                default: null
+            },
+            gapDirettamenteImplicati: [{
+                _id: false,
+                gapRefId: { type: Schema.Types.ObjectId, ref: 'Gap' }, // Riferimento all'ID del Gap
+                gapItemId: { type: String }, // item_id del Gap per facile lookup
+                gapDescrizioneBreve: { type: String } // Breve descrizione del gap per il report
+            }],
+            suggerimentiInterventoStrategicoAI: [{ type: String }] // Suggerimenti di alto livello
+        }],
+        summaryAnalisiCauseAI: { type: String } // Commento riassuntivo dell'AI sull'analisi
+    },
+    // --- FINE NUOVA SEZIONE ---
+    
     generato_da_id: { type: Schema.Types.ObjectId, ref: "User" },
     versioneReport: { type: Number, default: 1 },
     raccomandazioniGenerali: [String]
