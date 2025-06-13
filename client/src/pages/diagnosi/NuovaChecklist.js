@@ -26,23 +26,6 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { it } from 'date-fns/locale';
 
-// Animazioni
-const pulse = keyframes`
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-`;
-
-const slideIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
-const shine = keyframes`
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-`;
-
 // Stepper connector personalizzato
 const ColorlibConnector = styled(StepConnector)(({ theme }) => ({
     [`&.${stepConnectorClasses.alternativeLabel}`]: {
@@ -119,6 +102,11 @@ const GlassCard = styled(Card)(({ theme }) => ({
         pointerEvents: 'none'
     }
 }));
+
+const shine = keyframes`
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+`;
 
 const AnimatedButton = styled(Button)(({ theme }) => ({
     borderRadius: theme.spacing(3),
@@ -712,6 +700,9 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                             </Select>
                                         </FormControl>
                                     </Grid>
+                                    <Grid item xs={12} sm={6} md={4}> <StyledTextField name="cliente.reaNumero" label="Numero REA" fullWidth value={checklistData.cliente.reaNumero} onChange={handleInputChange} disabled={loading || processingVisura} InputLabelProps={{ shrink: !!checklistData.cliente.reaNumero }}/> </Grid>
+                                    <Grid item xs={12} sm={6} md={4}> <StyledTextField name="cliente.reaProvincia" label="Provincia REA" fullWidth value={checklistData.cliente.reaProvincia} onChange={handleInputChange} disabled={loading || processingVisura} InputLabelProps={{ shrink: !!checklistData.cliente.reaProvincia }}/> </Grid>
+                                    <Grid item xs={12} sm={6} md={4}> <StyledTextField name="cliente.codiceLEI" label="Codice LEI (Opz.)" fullWidth value={checklistData.cliente.codiceLEI} onChange={handleInputChange} disabled={loading || processingVisura} InputLabelProps={{ shrink: !!checklistData.cliente.codiceLEI }}/> </Grid>
                                     <Grid item xs={12} sm={6} md={4}>
                                         <StyledTextField
                                             name="cliente.capitaleSociale"
@@ -724,12 +715,17 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                             InputLabelProps={{ shrink: checklistData.cliente.capitaleSociale != null && checklistData.cliente.capitaleSociale !== '' }}
                                         />
                                     </Grid>
+                                    <Grid item xs={12} sm={6} md={4}>
+                                        <DatePicker label="Data Costituzione" value={checklistData.cliente.dataCostituzione} onChange={(newValue) => handleDateChange('cliente.dataCostituzione', newValue)} slots={{ textField: (params) => <StyledTextField {...params} fullWidth disabled={loading || processingVisura}/> }} />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4}>
+                                        <DatePicker label="Data Iscrizione RI" value={checklistData.cliente.dataIscrizioneRI} onChange={(newValue) => handleDateChange('cliente.dataIscrizioneRI', newValue)} slots={{ textField: (params) => <StyledTextField {...params} fullWidth disabled={loading || processingVisura}/> }} />
+                                    </Grid>
+
 
                                     {/* Sede Legale */}
                                     <Grid item xs={12}>
-                                        <Divider sx={{ my: 2 }}>
-                                            <Chip label="Sede Legale" size="small" />
-                                        </Divider>
+                                        <Divider sx={{ my: 2 }}><Chip label="Sede Legale" size="small" /></Divider>
                                     </Grid>
                                     <Grid item xs={12} md={8}>
                                         <StyledTextField
@@ -776,6 +772,61 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                             InputLabelProps={{ shrink: !!checklistData.cliente.sede_provincia }}
                                         />
                                     </Grid>
+
+                                    {/* Attività e Struttura */}
+                                    <Grid item xs={12}><Divider sx={{ my: 2 }}><Chip label="Attività e Struttura" size="small"/></Divider></Grid>
+                                    <Grid item xs={12} sm={6} md={4}>
+                                      <FormControl fullWidth disabled={loading || processingVisura}>
+                                          <InputLabel id="stato-attivita-label">Stato Attività</InputLabel>
+                                          <Select labelId="stato-attivita-label" name="cliente.statoAttivita" value={checklistData.cliente.statoAttivita} label="Stato Attività" onChange={handleInputChange} sx={{ borderRadius: 2 }}>
+                                              <MenuItem value="attiva">Attiva</MenuItem><MenuItem value="inattiva">Inattiva</MenuItem><MenuItem value="sospesa">Sospesa</MenuItem><MenuItem value="liquidazione">In Liquidazione</MenuItem><MenuItem value="cessata">Cessata</MenuItem>
+                                          </Select>
+                                      </FormControl>
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4}>
+                                          <DatePicker label="Data Inizio Attività" value={checklistData.cliente.dataInizioAttivita} onChange={(newValue) => handleDateChange('cliente.dataInizioAttivita', newValue)} slots={{ textField: (params) => <StyledTextField {...params} fullWidth disabled={loading || processingVisura}/> }} />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4}> <StyledTextField name="cliente.atecoPrimario" label="Codice ATECO Primario" fullWidth value={checklistData.cliente.atecoPrimario} onChange={handleInputChange} disabled={loading || processingVisura} InputLabelProps={{ shrink: !!checklistData.cliente.atecoPrimario }}/> </Grid>
+                                    <Grid item xs={12}> <StyledTextField name="cliente.attivitaPrevalente" label="Attività Prevalente (Descrizione)" fullWidth value={checklistData.cliente.attivitaPrevalente} onChange={handleInputChange} disabled={loading || processingVisura} multiline rows={2} InputLabelProps={{ shrink: !!checklistData.cliente.attivitaPrevalente }}/> </Grid>
+                                    <Grid item xs={12} sm={6} md={3}> <StyledTextField name="cliente.numeroAddetti" label="Numero Addetti" type="number" fullWidth value={checklistData.cliente.numeroAddetti} onChange={handleInputChange} disabled={loading || processingVisura} InputLabelProps={{ shrink: checklistData.cliente.numeroAddetti != null && checklistData.cliente.numeroAddetti !== '' }}/> </Grid>
+                                    <Grid item xs={12} sm={6} md={3}>
+                                         <DatePicker label="Data Riferim. Addetti" value={checklistData.cliente.dataRiferimentoAddetti} onChange={(newValue) => handleDateChange('cliente.dataRiferimentoAddetti', newValue)} slots={{ textField: (params) => <StyledTextField {...params} fullWidth disabled={loading || processingVisura}/> }} />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} md={3}> <StyledTextField name="cliente.numeroAmministratori" label="Numero Amministratori" type="number" fullWidth value={checklistData.cliente.numeroAmministratori} onChange={handleInputChange} disabled={loading || processingVisura} InputLabelProps={{ shrink: checklistData.cliente.numeroAmministratori != null && checklistData.cliente.numeroAmministratori !== '' }}/> </Grid>
+                                     <Grid item xs={12} sm={6} md={3}>
+                                         <FormControl fullWidth disabled={loading || processingVisura}>
+                                             <InputLabel id="sis-amm-label">Sistema Amministrazione</InputLabel>
+                                             <Select labelId="sis-amm-label" name="cliente.sistemaAmministrazione" value={checklistData.cliente.sistemaAmministrazione} label="Sistema Amministrazione" onChange={handleInputChange} sx={{ borderRadius: 2 }}>
+                                                  <MenuItem value=""><em>Non specificato</em></MenuItem>
+                                                  <MenuItem value="consiglio_di_amministrazione">Consiglio di Amministrazione</MenuItem>
+                                                  <MenuItem value="consiglio_di_amministrazione">Consiglio di Amministrazione (in carica)</MenuItem>
+                                                  <MenuItem value="amministratore_unico">Amministratore Unico</MenuItem>
+                                                  <MenuItem value="Altro">Altro</MenuItem>
+                                             </Select>
+                                         </FormControl>
+                                    </Grid>
+                                     <Grid item xs={12} sm={6} md={4}>
+                                         <FormControlLabel control={<Checkbox name="cliente.organoControlloPresente" checked={!!checklistData.cliente.organoControlloPresente} onChange={handleInputChange} disabled={loading || processingVisura}/>} label="Organo Controllo Presente?" />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4}>
+                                         <FormControl fullWidth disabled={loading || processingVisura || !checklistData.cliente.organoControlloPresente}>
+                                             <InputLabel id="tipo-org-controllo-label">Tipo Organo Controllo</InputLabel>
+                                             <Select labelId="tipo-org-controllo-label" name="cliente.tipoOrganoControllo" value={checklistData.cliente.tipoOrganoControllo} label="Tipo Organo Controllo" onChange={handleInputChange} sx={{ borderRadius: 2 }}>
+                                                  <MenuItem value=""><em>Non specificato</em></MenuItem>
+                                                  <MenuItem value="Sindaco Unico">Sindaco Unico</MenuItem>
+                                                  <MenuItem value="Collegio Sindacale">Collegio Sindacale</MenuItem>
+                                                  <MenuItem value="Revisore Legale">Revisore Legale</MenuItem>
+                                                  <MenuItem value="Società Revisione">Società Revisione</MenuItem>
+                                             </Select>
+                                         </FormControl>
+                                    </Grid>
+                                    <Grid item xs={12} sm={6} md={4}> <StyledTextField name="cliente.numeroUnitaLocali" label="Numero Unità Locali" type="number" fullWidth value={checklistData.cliente.numeroUnitaLocali} onChange={handleInputChange} disabled={loading || processingVisura} InputLabelProps={{ shrink: checklistData.cliente.numeroUnitaLocali != null && checklistData.cliente.numeroUnitaLocali !== '' }}/> </Grid>
+
+                                    {/* Varie */}
+                                    <Grid item xs={12}><Divider sx={{ my: 2 }}><Chip label="Varie" size="small"/></Divider></Grid>
+                                    <Grid item xs={12} sm={6}> <StyledTextField name="cliente.certificazioni" label="Certificazioni (separate da virgola)" fullWidth value={checklistData.cliente.certificazioni} onChange={handleInputChange} disabled={loading || processingVisura} InputLabelProps={{ shrink: !!checklistData.cliente.certificazioni }}/> </Grid>
+                                    <Grid item xs={6} sm={3}><FormControlLabel control={<Checkbox name="cliente.importExport" checked={!!checklistData.cliente.importExport} onChange={handleInputChange} disabled={loading || processingVisura}/>} label="Import/Export?" /></Grid>
+                                    <Grid item xs={6} sm={3}><FormControlLabel control={<Checkbox name="cliente.partecipazioni" checked={!!checklistData.cliente.partecipazioni} onChange={handleInputChange} disabled={loading || processingVisura}/>} label="Partecipazioni?" /></Grid>
 
                                     {/* Info Valutazione */}
                                     <Grid item xs={12}>
@@ -829,6 +880,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                             </Select>
                                         </FormControl>
                                     </Grid>
+                                     <Grid item xs={12} md={12}> <StyledTextField name="cliente.settore" label="Settore Attività (Generico)" fullWidth value={checklistData.cliente.settore} onChange={handleInputChange} disabled={loading || processingVisura} InputLabelProps={{ shrink: !!checklistData.cliente.settore }}/> </Grid>
 
                                     {/* Profilazione Avanzata */}
                                     <Grid item xs={12}>
@@ -882,6 +934,18 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                                 </FormControl>
                                             </Grid>
                                             <Grid item xs={12} md={6}>
+                                              <FormControl fullWidth disabled={loading || processingVisura}>
+                                                <InputLabel id="complessita-op-label">Complessità Operativa</InputLabel>
+                                                <Select labelId="complessita-op-label" name="cliente.complessitaOperativa" value={checklistData.cliente.complessitaOperativa} label="Complessità Operativa" onChange={handleInputChange} sx={{ borderRadius: 2 }}>
+                                                  <MenuItem value=""><em>Non specificato</em></MenuItem>
+                                                  <MenuItem value="Bassa">Bassa</MenuItem>
+                                                  <MenuItem value="Media">Media</MenuItem>
+                                                  <MenuItem value="Alta">Alta</MenuItem>
+                                                  <MenuItem value="Molto Alta">Molto Alta</MenuItem>
+                                                </Select>
+                                              </FormControl>
+                                            </Grid>
+                                            <Grid item xs={12} md={6}>
                                                 <FormControl fullWidth disabled={loading || processingVisura}>
                                                     <InputLabel id="struttura-prop-label">Struttura Proprietaria</InputLabel>
                                                     <Select
@@ -898,26 +962,6 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                                         <MenuItem value="Mista">Mista Famiglia/Manager</MenuItem>
                                                         <MenuItem value="Fondo Investimento">Fondo di Investimento</MenuItem>
                                                         <MenuItem value="Pubblica">Partecipazione Pubblica</MenuItem>
-                                                    </Select>
-                                                </FormControl>
-                                            </Grid>
-                                            <Grid item xs={12} md={6}>
-                                                <FormControl fullWidth disabled={loading || processingVisura}>
-                                                    <InputLabel id="ciclo-vita-label">Fase Ciclo di Vita</InputLabel>
-                                                    <Select
-                                                        labelId="ciclo-vita-label"
-                                                        name="cliente.faseCicloVita"
-                                                        value={checklistData.cliente.faseCicloVita}
-                                                        label="Fase Ciclo di Vita"
-                                                        onChange={handleInputChange}
-                                                        sx={{ borderRadius: 2 }}
-                                                    >
-                                                        <MenuItem value=""><em>Non specificato</em></MenuItem>
-                                                        <MenuItem value="Startup">Startup/Avvio</MenuItem>
-                                                        <MenuItem value="Crescita">Crescita Rapida</MenuItem>
-                                                        <MenuItem value="Maturita">Maturità</MenuItem>
-                                                        <MenuItem value="Declino">Declino</MenuItem>
-                                                        <MenuItem value="Ristrutturazione">In Ristrutturazione</MenuItem>
                                                     </Select>
                                                 </FormControl>
                                             </Grid>
@@ -942,6 +986,28 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                                     </Select>
                                                 </FormControl>
                                             </Grid>
+                                            <Grid item xs={12} md={6}>
+                                                <FormControl fullWidth disabled={loading || processingVisura}>
+                                                    <InputLabel id="ciclo-vita-label">Fase Ciclo di Vita</InputLabel>
+                                                    <Select
+                                                        labelId="ciclo-vita-label"
+                                                        name="cliente.faseCicloVita"
+                                                        value={checklistData.cliente.faseCicloVita}
+                                                        label="Fase Ciclo di Vita"
+                                                        onChange={handleInputChange}
+                                                        sx={{ borderRadius: 2 }}
+                                                    >
+                                                        <MenuItem value=""><em>Non specificato</em></MenuItem>
+                                                        <MenuItem value="Startup">Startup/Avvio</MenuItem>
+                                                        <MenuItem value="Crescita">Crescita Rapida</MenuItem>
+                                                        <MenuItem value="Maturita">Maturità</MenuItem>
+                                                        <MenuItem value="Declino">Declino</MenuItem>
+                                                        <MenuItem value="Ristrutturazione">In Ristrutturazione</MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </Grid>
+                                             <Grid item xs={12} md={6}> <StyledTextField name="cliente.settoreATECOSpecifico" label="Settore ATECO Specifico (es. 22.2)" fullWidth value={checklistData.cliente.settoreATECOSpecifico} onChange={handleInputChange} disabled={loading || processingVisura} InputLabelProps={{ shrink: !!checklistData.cliente.settoreATECOSpecifico }}/> </Grid>
+
                                             
                                             <Grid item xs={12}>
                                                 <StyledTextField
@@ -1001,7 +1067,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                             
                             <Grid container spacing={3}>
                                 <Grid item xs={12} md={6}>
-                                    <GlassCard>
+                                    <GlassCard sx={{ height: '100%' }}>
                                         <CardContent>
                                             <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
                                                 Informazioni Checklist
@@ -1019,7 +1085,7 @@ const NuovaChecklist = ({ onSaveSuccess, onCancel }) => {
                                 </Grid>
                                 
                                 <Grid item xs={12} md={6}>
-                                    <GlassCard>
+                                    <GlassCard sx={{ height: '100%' }}>
                                         <CardContent>
                                             <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
                                                 Dati Cliente
