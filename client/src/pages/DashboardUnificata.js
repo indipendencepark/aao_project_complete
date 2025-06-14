@@ -1,3 +1,5 @@
+
+
 import React, { useState } from 'react';
 import {
   Box,
@@ -15,14 +17,6 @@ import {
   Chip,
   Alert,
   IconButton,
-  LinearProgress,
-  Fade,
-  Grow,
-  Zoom,
-  Container,
-  Stack,
-  Skeleton,
-  useTheme
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 
@@ -36,10 +30,9 @@ import {
   Title,
   Tooltip,
   Legend,
-  ArcElement,
-  RadialLinearScale
+  ArcElement
 } from 'chart.js';
-import { Pie, Bar, Doughnut, PolarArea, Radar } from 'react-chartjs-2';
+import { Pie, Bar } from 'react-chartjs-2';
 
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import ConstructionIcon from '@mui/icons-material/Construction';
@@ -57,9 +50,6 @@ import AnalyticsIcon from '@mui/icons-material/Analytics';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AddIcon from '@mui/icons-material/Add';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import AutorenewIcon from '@mui/icons-material/Autorenew';
 
 ChartJS.register(
   CategoryScale,
@@ -70,8 +60,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement,
-  RadialLinearScale
+  ArcElement
 );
 
 const kpiData = [
@@ -98,169 +87,19 @@ const interventiData = [
   { id: '2', nome: 'Definizione organigramma', area: 'Organizzativa', priorita: 'alta', stato: 'completato', completamento: 100 },
 ];
 
-// Card moderna con glassmorphism
-const ModernCard = ({ children, gradient, icon, delay = 0, ...props }) => (
-  <Grow in timeout={500 + delay}>
-    <Card
-      sx={{
-        height: '100%',
-        background: 'rgba(255, 255, 255, 0.7)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.3)',
-        position: 'relative',
-        overflow: 'hidden',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        '&:hover': {
-          transform: 'translateY(-8px) scale(1.02)',
-          boxShadow: '0px 40px 80px rgba(0, 0, 0, 0.12)',
-          '& .icon-bg': {
-            transform: 'scale(1.2) rotate(10deg)',
-          }
-        },
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '4px',
-          background: gradient,
-          opacity: 0.8,
-        },
-        ...props.sx
-      }}
-      {...props}
-    >
-      {icon && (
-        <Box
-          className="icon-bg"
-          sx={{
-            position: 'absolute',
-            top: -20,
-            right: -20,
-            width: 100,
-            height: 100,
-            background: gradient,
-            borderRadius: '50%',
-            opacity: 0.1,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-        />
-      )}
-      {children}
-    </Card>
-  </Grow>
-);
-
-// Componente MetricCard con animazioni
-const MetricCard = ({ title, value, subtitle, icon, gradient, trend, delay }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  
-  React.useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), delay);
-    return () => clearTimeout(timer);
-  }, [delay]);
-  
-  return (
-    <ModernCard gradient={gradient} icon={icon} delay={delay}>
-      <CardContent sx={{ position: 'relative', zIndex: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <Box>
-            <Typography 
-              variant="subtitle2" 
-              color="text.secondary" 
-              sx={{ 
-                fontWeight: 500,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                fontSize: '0.75rem',
-                mb: 1
-              }}
-            >
-              {title}
-            </Typography>
-            <Typography 
-              variant="h3" 
-              sx={{ 
-                fontWeight: 800,
-                background: gradient,
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                mb: 0.5,
-                transition: 'all 0.3s ease',
-                transform: isVisible ? 'scale(1)' : 'scale(0.8)',
-                opacity: isVisible ? 1 : 0,
-              }}
-            >
-              {value}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {subtitle}
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              width: 48,
-              height: 48,
-              borderRadius: '12px',
-              background: gradient,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            {icon}
-          </Box>
-        </Box>
-        {trend && (
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, gap: 0.5 }}>
-            {trend > 0 ? (
-              <TrendingUpIcon sx={{ color: '#10B981', fontSize: 20 }} />
-            ) : (
-              <TrendingDownIcon sx={{ color: '#EF4444', fontSize: 20 }} />
-            )}
-            <Typography variant="body2" sx={{ 
-              color: trend > 0 ? '#10B981' : '#EF4444',
-              fontWeight: 600
-            }}>
-              {Math.abs(trend)}%
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              vs mese precedente
-            </Typography>
-          </Box>
-        )}
-      </CardContent>
-    </ModernCard>
-  );
-};
-
 const DashboardUnificata = () => {
-  const theme = useTheme();
   const [kpis] = useState(kpiData);
   const [valoriKpi] = useState(valoriKpiData);
   const [alerts] = useState(alertsData);
   const [checklists] = useState(checklistData);
   const [interventiState] = useState(interventiData);
-  const [loadingData, setLoadingData] = useState(true);
-
-  React.useEffect(() => {
-    // Simula caricamento dati
-    setTimeout(() => setLoadingData(false), 1000);
-  }, []);
 
   function getKpiStatus(kpi) {
     const valoriKpiOrdinati = valoriKpi
       .filter(valore => valore.kpi_id === kpi.id)
       .sort((a, b) => new Date(b.data_rilevazione) - new Date(a.data_rilevazione));
-    
     if (valoriKpiOrdinati.length === 0) return 'non_rilevato';
-    
     const ultimoValore = valoriKpiOrdinati[0].valore;
-    
     if (kpi.soglia_allarme > kpi.soglia_attenzione) {
       if (ultimoValore >= kpi.soglia_allarme) return 'allarme';
       if (ultimoValore >= kpi.soglia_attenzione) return 'attenzione';
@@ -291,476 +130,174 @@ const DashboardUnificata = () => {
     ? checklistCompletate.reduce((acc, curr) => acc + curr.punteggio, 0) / checklistCompletate.length
     : 0;
 
-  // Configurazione grafici moderni
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      tooltip: {
-        backgroundColor: 'rgba(30, 41, 59, 0.95)',
-        padding: 12,
-        cornerRadius: 8,
-        titleFont: {
-          size: 14,
-          weight: '600',
-        },
-        bodyFont: {
-          size: 13,
-        },
-      },
-    },
-  };
-
-  const kpiDoughnutData = {
-    labels: ['OK', 'Attenzione', 'Allarme'],
+  const kpiPieData = {
+    labels: ['OK', 'Attenzione', 'Allarme', 'Non Rilevato'],
     datasets: [{
-      data: [kpiStatusCount.ok, kpiStatusCount.attenzione, kpiStatusCount.allarme],
-      backgroundColor: [
-        'rgba(16, 185, 129, 0.8)',
-        'rgba(245, 158, 11, 0.8)',
-        'rgba(239, 68, 68, 0.8)',
-      ],
-      borderColor: [
-        'rgba(16, 185, 129, 1)',
-        'rgba(245, 158, 11, 1)',
-        'rgba(239, 68, 68, 1)',
-      ],
-      borderWidth: 2,
-      hoverOffset: 8,
+        data: [kpiStatusCount.ok, kpiStatusCount.attenzione, kpiStatusCount.allarme, kpiStatusCount.non_rilevato],
+        backgroundColor: ['#4caf50', '#ff9800', '#f44336', '#9e9e9e'],
+        borderWidth: 1,
     }],
   };
+  const kpiPieOptions = {
+    responsive: true,
+    plugins: { legend: { position: 'top' }, title: { display: true, text: 'Stato KPI Attuali' } }
+  };
 
-  const interventiPolarData = {
+  const interventiBarData = {
     labels: ['Completati', 'In Corso', 'Pianificati'],
     datasets: [{
-      data: [interventiStatusCount.completato, interventiStatusCount.in_corso, interventiStatusCount.pianificato],
-      backgroundColor: [
-        'rgba(99, 102, 241, 0.6)',
-        'rgba(236, 72, 153, 0.6)',
-        'rgba(59, 130, 246, 0.6)',
-      ],
-      borderColor: [
-        'rgba(99, 102, 241, 1)',
-        'rgba(236, 72, 153, 1)',
-        'rgba(59, 130, 246, 1)',
-      ],
-      borderWidth: 2,
+        label: 'Numero di Interventi',
+        data: [interventiStatusCount.completato, interventiStatusCount.in_corso, interventiStatusCount.pianificato],
+        backgroundColor: ['#4caf50', '#2196f3', '#9e9e9e'],
     }],
   };
-
-  if (loadingData) {
-    return (
-      <Container maxWidth="xl">
-        <Grid container spacing={3}>
-          {[1, 2, 3, 4].map((i) => (
-            <Grid item xs={12} sm={6} md={3} key={i}>
-              <Skeleton variant="rounded" height={150} sx={{ borderRadius: 4 }} />
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
-    );
-  }
+  const interventiBarOptions = {
+    responsive: true,
+    plugins: { legend: { position: 'top' }, title: { display: true, text: 'Stato Interventi Pianificati' } },
+    scales: { y: { beginAtZero: true } }
+  };
 
   return (
     <Box>
-      <Fade in timeout={500}>
-        <Box sx={{ mb: 4 }}>
-          <Typography 
-            variant="h4" 
-            gutterBottom 
-            sx={{ 
-              fontWeight: 800,
-              background: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              mb: 1
-            }}
-          >
-            Dashboard Sistema AAO
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Panoramica completa del sistema di gestione degli Adeguati Assetti Organizzativi
-          </Typography>
-        </Box>
-      </Fade>
+      <Typography variant="h5" gutterBottom>Dashboard Unificata AAO</Typography>
       
-      {/* Alert di benvenuto con design moderno */}
-      <Zoom in timeout={600}>
-        <Alert 
-          severity="info" 
-          sx={{ 
-            mb: 4,
-            borderRadius: 3,
-            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%)',
-            border: '1px solid rgba(99, 102, 241, 0.2)',
-            '& .MuiAlert-icon': {
-              color: '#6366F1',
-            }
-          }}
-        >
-          <Typography variant="body1" sx={{ fontWeight: 600 }}>
-            Benvenuto nel Sistema AAO
-          </Typography>
-          <Typography variant="body2">
-            Utilizza il menu laterale per navigare tra i moduli e monitorare lo stato degli assetti aziendali.
-          </Typography>
-        </Alert>
-      </Zoom>
+      <Alert severity="info" sx={{ mb: 3 }}>
+        <Typography variant="body1"><strong>Benvenuto nel Sistema AAO</strong></Typography>
+        <Typography variant="body2">Utilizza il menu laterale per navigare tra i moduli.</Typography>
+      </Alert>
       
-      {/* Metriche principali con design ultra moderno */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <MetricCard
-            title="Diagnosi"
-            value={`${punteggioMedio.toFixed(0)}%`}
-            subtitle={`${checklistCompletate.length} checklist completate`}
-            icon={<AssessmentIcon />}
-            gradient="linear-gradient(135deg, #F093FB 0%, #F5576C 100%)"
-            trend={12}
-            delay={0}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <MetricCard
-            title="Progettazione"
-            value={`${interventiStatusCount.completato}/${interventiState.length}`}
-            subtitle="Interventi completati"
-            icon={<ConstructionIcon />}
-            gradient="linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)"
-            trend={-5}
-            delay={100}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <MetricCard
-            title="Monitoraggio"
-            value={`${kpiStatusCount.attenzione + kpiStatusCount.allarme}`}
-            subtitle={`KPI critici su ${kpis.length}`}
-            icon={<MonitorIcon />}
-            gradient="linear-gradient(135deg,rgb(3, 4, 3) 0%, #38F9D7 100%)"
-            trend={8}
-            delay={200}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <MetricCard
-            title="Alert Attivi"
-            value={unreadAlertsCount}
-            subtitle="Da gestire"
-            icon={<NotificationsIcon />}
-            gradient="linear-gradient(135deg, #FA709A 0%, #FEE140 100%)"
-            trend={-15}
-            delay={300}
-          />
-        </Grid>
-      </Grid>
-
-      {/* Grafici con design moderno */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={6}>
-          <Grow in timeout={800}>
-            <Paper 
-              sx={{ 
-                p: 3, 
-                height: 400,
-                background: 'rgba(255, 255, 255, 0.7)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-              }}
-            >
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-                Stato KPI
-              </Typography>
-              {kpis.length > 0 ? (
-                <Box sx={{ height: 300, position: 'relative' }}>
-                  <Doughnut data={kpiDoughnutData} options={{
-                    ...chartOptions,
-                    cutout: '70%',
-                    plugins: {
-                      ...chartOptions.plugins,
-                      legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                          padding: 20,
-                          usePointStyle: true,
-                          font: {
-                            size: 12,
-                            weight: '500',
-                          },
-                        },
-                      },
-                    },
-                  }} />
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      textAlign: 'center',
-                    }}
-                  >
-                    <Typography variant="h3" sx={{ fontWeight: 800, color: '#1E293B' }}>
-                      {kpis.length}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      KPI Totali
-                    </Typography>
-                  </Box>
-                </Box>
-              ) : (
-                <Typography variant="body2" color="text.secondary" align="center">
-                  Nessun KPI definito.
-                </Typography>
-              )}
-            </Paper>
-          </Grow>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <Grow in timeout={900}>
-            <Paper 
-              sx={{ 
-                p: 3, 
-                height: 400,
-                background: 'rgba(255, 255, 255, 0.7)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-              }}
-            >
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-                Stato Interventi
-              </Typography>
-              {interventiState.length > 0 ? (
-                <Box sx={{ height: 300 }}>
-                  <PolarArea data={interventiPolarData} options={{
-                    ...chartOptions,
-                    scales: {
-                      r: {
-                        beginAtZero: true,
-                        grid: {
-                          color: 'rgba(0, 0, 0, 0.05)',
-                        },
-                        ticks: {
-                          display: false,
-                        },
-                      },
-                    },
-                    plugins: {
-                      ...chartOptions.plugins,
-                      legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                          padding: 20,
-                          usePointStyle: true,
-                          font: {
-                            size: 12,
-                            weight: '500',
-                          },
-                        },
-                      },
-                    },
-                  }} />
-                </Box>
-              ) : (
-                <Typography variant="body2" color="text.secondary" align="center">
-                  Nessun intervento definito.
-                </Typography>
-              )}
-            </Paper>
-          </Grow>
-        </Grid>
-      </Grid>
-
-      {/* Azioni rapide con design moderno */}
-      <Grow in timeout={1000}>
-        <Paper 
-          sx={{ 
-            p: 4, 
-            mb: 4,
-            background: 'rgba(255, 255, 255, 0.7)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-          }}
-        >
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-            Azioni Rapide
-          </Typography>
-          <Grid container spacing={2}>
-            {[
-              { icon: <ChecklistIcon />, text: 'Nuova Checklist', to: '/diagnosi/nuova-checklist', color: '#F093FB' },
-              { icon: <AddIcon />, text: 'Nuovo Intervento', to: '/progettazione/interventi', color: '#4FACFE' },
-              { icon: <AnalyticsIcon />, text: 'Gestione KPI', to: '/monitoraggio/kpi', color: '#43E97B' },
-              { icon: <DescriptionIcon />, text: 'Documenti AAO', to: '/progettazione/formalizzazione', color: '#FA709A' },
-            ].map((action, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <Button
-                  component={Link}
-                  to={action.to}
-                  variant="outlined"
-                  fullWidth
-                  startIcon={action.icon}
-                  sx={{
-                    py: 2,
-                    borderRadius: 3,
-                    borderColor: action.color,
-                    color: action.color,
-                    borderWidth: 2,
-                    fontWeight: 600,
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    '&:hover': {
-                      borderWidth: 2,
-                      backgroundColor: action.color,
-                      color: 'white',
-                      transform: 'translateY(-2px)',
-                      boxShadow: `0px 8px 24px ${action.color}40`,
-                    },
-                  }}
-                >
-                  {action.text}
-                </Button>
-              </Grid>
-            ))}
-          </Grid>
-        </Paper>
-      </Grow>
-
-      {/* Ultime attività con design moderno */}
-      <Grow in timeout={1100}>
-        <Paper 
-          sx={{ 
-            p: 4,
-            background: 'rgba(255, 255, 255, 0.7)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Ultime Attività / Notifiche
-            </Typography>
-            <IconButton 
-              sx={{ 
-                color: '#6366F1',
-                '&:hover': {
-                  backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                },
-              }}
-            >
-              <AutorenewIcon />
-            </IconButton>
-          </Box>
-          
-          {alerts.length > 0 ? (
-            <List sx={{ p: 0 }}>
-              {alerts.slice(0, 5).map((alert, index) => (
-                <ListItem 
-                  key={alert.id} 
-                  sx={{ 
-                    bgcolor: alert.letto ? 'transparent' : 'rgba(99, 102, 241, 0.05)',
-                    borderRadius: 2,
-                    mb: 1,
-                    border: '1px solid',
-                    borderColor: alert.letto ? 'transparent' : 'rgba(99, 102, 241, 0.2)',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      backgroundColor: 'rgba(99, 102, 241, 0.08)',
-                      transform: 'translateX(8px)',
-                    },
-                  }}
-                  secondaryAction={
-                    <IconButton 
-                      edge="end" 
-                      component={Link} 
-                      to="/monitoraggio/alerts"
-                      sx={{
-                        '&:hover': {
-                          backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        },
-                      }}
-                    >
-                      <VisibilityIcon />
-                    </IconButton>
-                  }
-                >
-                  <ListItemIcon sx={{ minWidth: 42 }}>
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: alert.tipo === 'allarme' 
-                          ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)' 
-                          : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                        color: 'white',
-                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                      }}
-                    >
-                      {alert.tipo === 'allarme' ? <ErrorIcon fontSize="small" /> : <WarningIcon fontSize="small" />}
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>Stato del Sistema AAO</Typography>
+            <Grid container spacing={2}>
+              
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: '#e3f2fd', height: '100%' }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <AssessmentIcon color="primary" sx={{ mr: 1 }} />
+                      <Typography variant="h6">Diagnosi</Typography>
                     </Box>
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary={
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#1E293B' }}>
-                        {alert.messaggio}
-                      </Typography>
-                    }
-                    secondary={
-                      <Typography variant="caption" sx={{ color: '#64748B' }}>
-                        {alert.area} • {new Date(alert.data_generazione).toLocaleDateString('it-IT')}
-                      </Typography>
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-          ) : (
-            <Box 
-              sx={{ 
-                textAlign: 'center', 
-                py: 6,
-                borderRadius: 2,
-                border: '2px dashed rgba(0, 0, 0, 0.1)',
-              }}
-            >
-              <NotificationsIcon sx={{ fontSize: 48, color: '#CBD5E1', mb: 2 }} />
-              <Typography variant="body2" color="text.secondary">
-                Nessuna attività recente o alert attivo
-              </Typography>
-            </Box>
-          )}
-          
-          {alerts.length > 5 && (
-            <Box sx={{ mt: 3, textAlign: 'center' }}>
-              <Button 
-                component={Link} 
-                to="/monitoraggio/alerts" 
-                variant="text"
-                endIcon={<ArrowForwardIcon />}
-                sx={{
-                  color: '#6366F1',
-                  fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: 'rgba(99, 102, 241, 0.08)',
-                  },
-                }}
-              >
-                Vedi tutti gli alert ({alerts.length})
-              </Button>
-            </Box>
-          )}
-        </Paper>
-      </Grow>
+                    <Typography variant="body2">{checklistCompletate.length} Checklist completate.</Typography>
+                    <Typography variant="body2">{checklistInProgress.length} Checklist in corso.</Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt:1 }}>
+                      <Typography variant="h5" color="primary">{punteggioMedio.toFixed(0)}%</Typography>
+                      <Chip label={checklistInProgress.length > 0 ? "In corso" : "Completata"} color={checklistInProgress.length > 0 ? "primary" : "success"} size="small" />
+                    </Box>
+                    <Button component={Link} to="/diagnosi" size="small" endIcon={<ArrowForwardIcon />} sx={{ mt: 1, display: 'block', textAlign: 'right' }}>Vai al modulo</Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: '#e8f5e9', height: '100%' }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <ConstructionIcon color="success" sx={{ mr: 1 }} />
+                      <Typography variant="h6">Progettazione</Typography>
+                    </Box>
+                    <Typography variant="body2">{interventiState.length} Interventi definiti.</Typography>
+                    <Typography variant="body2">{interventiStatusCount.in_corso} Interventi in corso.</Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                        <Typography variant="h5" color="success.main">{interventiStatusCount.completato}/{interventiState.length}</Typography>
+                        <Chip
+                          label={interventiStatusCount.in_corso > 0 ? "In corso" : (interventiStatusCount.completato === interventiState.length && interventiState.length > 0 ? "Completata" : "Pianificata") }
+                          color={interventiStatusCount.in_corso > 0 ? "primary" : (interventiStatusCount.completato === interventiState.length && interventiState.length > 0 ? "success" : "info")}
+                          size="small"
+                        />
+                    </Box>
+                    <Button component={Link} to="/progettazione" size="small" endIcon={<ArrowForwardIcon />} sx={{ mt: 1, display: 'block', textAlign: 'right' }}>Vai al modulo</Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: '#fff3e0', height: '100%' }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <MonitorIcon color="warning" sx={{ mr: 1 }} />
+                      <Typography variant="h6">Monitoraggio</Typography>
+                    </Box>
+                    <Typography variant="body2">{kpis.length} KPI monitorati.</Typography>
+                    <Typography variant="body2">{kpiStatusCount.attenzione + kpiStatusCount.allarme} KPI con criticità.</Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                      <Typography variant="h5" color={kpiStatusCount.allarme > 0 ? 'error.main' : 'warning.main'}>{kpiStatusCount.attenzione + kpiStatusCount.allarme} / {kpis.length}</Typography>
+                      <Chip label={kpiStatusCount.allarme > 0 ? "Allarme" : (kpiStatusCount.attenzione > 0 ? "Attenzione" : "OK")} color={kpiStatusCount.allarme > 0 ? "error" : (kpiStatusCount.attenzione > 0 ? "warning" : "success")} size="small" />
+                    </Box>
+                    <Button component={Link} to="/monitoraggio" size="small" endIcon={<ArrowForwardIcon />} sx={{ mt: 1, display: 'block', textAlign: 'right' }}>Vai al modulo</Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: '#ffebee', height: '100%' }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <NotificationsIcon color="error" sx={{ mr: 1 }} />
+                      <Typography variant="h6">Alert Attivi</Typography>
+                    </Box>
+                    <Typography variant="body2">Alert generati da KPI fuori soglia.</Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                      <Typography variant="h4" color="error">{unreadAlertsCount}</Typography>
+                      <Chip label={unreadAlertsCount > 0 ? "Da leggere" : "Nessuno"} color={unreadAlertsCount > 0 ? "error" : "default"} size="small" />
+                    </Box>
+                    <Button component={Link} to="/monitoraggio/alerts" size="small" endIcon={<ArrowForwardIcon />} sx={{ mt: 1, display: 'block', textAlign: 'right' }}>Gestisci Alert</Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+           <Paper sx={{ p: 3, height: '100%' }}>
+             <Typography variant="h6" gutterBottom>Stato KPI</Typography>
+             {kpis.length > 0 ? (
+                 <Box sx={{ height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center' }}><Pie data={kpiPieData} options={kpiPieOptions}/></Box>
+             ) : ( <Typography variant="body2" color="text.secondary" align="center">Nessun KPI definito.</Typography> )}
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+             <Typography variant="h6" gutterBottom>Stato Interventi</Typography>
+             {interventiState.length > 0 ? (
+                 <Box sx={{ height: 300 }}><Bar data={interventiBarData} options={interventiBarOptions} /></Box>
+             ) : ( <Typography variant="body2" color="text.secondary" align="center">Nessun intervento definito.</Typography> )}
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3, mt: 3 }}>
+            <Typography variant="h6" gutterBottom>Azioni Rapide</Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}><Button component={Link} to="/diagnosi/nuova-checklist" variant="outlined" fullWidth startIcon={<ChecklistIcon />}>Nuova Checklist</Button></Grid>
+                <Grid item xs={12} sm={6} md={3}><Button component={Link} to="/progettazione/interventi" variant="outlined" fullWidth startIcon={<AddIcon />}>Nuovo Intervento</Button></Grid>
+                <Grid item xs={12} sm={6} md={3}><Button component={Link} to="/monitoraggio/kpi" variant="outlined" fullWidth startIcon={<AnalyticsIcon />}>Gestione KPI</Button></Grid>
+                <Grid item xs={12} sm={6} md={3}><Button component={Link} to="/progettazione/formalizzazione" variant="outlined" fullWidth startIcon={<DescriptionIcon />}>Documenti AAO</Button></Grid>
+            </Grid>
+          </Paper>
+        </Grid>
+
+         <Grid item xs={12}>
+           <Paper sx={{ p: 3, mt: 3 }}>
+              <Typography variant="h6" gutterBottom>Ultime Attività / Notifiche</Typography>
+              <Divider sx={{ mb: 2 }} />
+             {alerts.length > 0 ? (
+                 <List dense>
+                      {alerts.slice(0, 5).map((alert) => (
+                        <ListItem key={alert.id} secondaryAction={<IconButton edge="end" aria-label="view" component={Link} to="/monitoraggio/alerts"><VisibilityIcon /></IconButton>} sx={{ bgcolor: alert.letto ? 'inherit' : '#fff8e1' }}>
+                             <ListItemIcon>{alert.tipo === 'allarme' ? <ErrorIcon color="error" /> : <WarningIcon color="warning" />}</ListItemIcon>
+                             <ListItemText primary={alert.messaggio} secondary={`${alert.area} - ${new Date(alert.data_generazione).toLocaleDateString('it-IT')}`} />
+                        </ListItem>
+                    ))}
+                 </List>
+             ) : ( <Typography variant="body2" color="text.secondary">Nessuna attività recente o alert attivo.</Typography> )}
+             {alerts.length > 5 && ( <Button component={Link} to="/monitoraggio/alerts" size="small" sx={{ mt: 1 }}>Vedi tutti gli alert</Button> )}
+         </Paper>
+       </Grid>
+      </Grid>
     </Box>
   );
 };
